@@ -1,0 +1,47 @@
+mod handlers;
+mod models;
+
+use handlers::TransactionDigestHandler;
+
+pub mod schema;
+
+use anyhow::Result;
+use clap::{Arg, Parser};
+use diesel_migrations::{EmbeddedMigrations, embed_migrations};
+use sui_indexer_alt_framework::{
+    cluster::{Args, IndexerCluster},
+    pipeline::sequential::SequentialConfig,
+};
+use tokio;
+use url::Url;
+
+const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    dotenvy::dotenv().ok();
+
+    let database_url = std::env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set")
+        .parse::<Url>()
+        .expect("Invalid database URL");
+
+    let args = Args::try_parse().expect("Failed to parse arguments");
+
+    let mut cluster = IndexerCluster::builder()
+        .with_args(args)
+        .with_database_url(database_url)
+        .with_migrations(&MIGRATIONS)
+        .build()
+        .await?;
+
+    cluster
+        .sequential_pipeline(TransactionDigestHandler, SequentialConfig::default())
+        .await?;
+
+    println!("Start seq indexer");
+    let handle = cluster.run().await?;
+    handle.await?;
+
+    Ok(())
+}
