@@ -1,12 +1,12 @@
-mod handlers;
 mod models;
+mod upgrade_cap_handler;
 
-use handlers::TransactionDigestHandler;
+use upgrade_cap_handler::UpgradeCapHandler;
 
 pub mod schema;
 
 use anyhow::Result;
-use clap::{Arg, Parser};
+use clap::Parser;
 use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 use sui_indexer_alt_framework::{
     cluster::{Args, IndexerCluster},
@@ -36,10 +36,11 @@ async fn main() -> Result<()> {
         .await?;
 
     cluster
-        .sequential_pipeline(TransactionDigestHandler, SequentialConfig::default())
+        .sequential_pipeline(UpgradeCapHandler, SequentialConfig::default())
         .await?;
 
-    println!("Start seq indexer");
+    println!("Running Sequential Indexer");
+
     let handle = cluster.run().await?;
     handle.await?;
 

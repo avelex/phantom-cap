@@ -30,4 +30,5 @@ dotenvy = "0.15"
 
 # Command line parsing
 clap = { version = "4.5.53", features = ["derive"] }
+chrono = "0.4.42"
 
