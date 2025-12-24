@@ -116,14 +116,13 @@ impl Processor for UpgradeCapHandler {
             .flat_map(|tx| get_created_upgrade_caps(tx, &checkpoint.object_set))
             .map(|ownable_upgrade_cap| {
                 println!(
-                    "TX: {} Upgrade cap: {} Policy: {}",
+                    "[CREATED] Tx: {} Id: {}",
                     ownable_upgrade_cap.tx_digest,
                     ownable_upgrade_cap
                         .upgrade_cap
                         .id
                         .object_id()
                         .to_hex_literal(),
-                    ownable_upgrade_cap.upgrade_cap.policy
                 );
 
                 UpgradeCap {

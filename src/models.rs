@@ -46,13 +46,6 @@ impl FromSql<UpgradeCompatibilityPolicy, Pg> for UpgradeCompatibilityPolicyEnum 
     }
 }
 
-#[derive(Insertable, Debug, Clone, FieldCount)]
-#[diesel(table_name = transaction_digests)]
-pub struct StoredTransactionDigest {
-    pub tx_digest: String,
-    pub checkpoint_sequence_number: i64,
-}
-
 #[derive(Insertable, Clone, FieldCount)]
 #[diesel(table_name = upgrade_caps)]
 pub struct UpgradeCap {
@@ -65,4 +58,15 @@ pub struct UpgradeCap {
     pub init_tx_digest: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Insertable, Clone, FieldCount, Debug)]
+#[diesel(table_name = upgrade_cap_transfers_history)]
+pub struct UpgradeCapTransfer {
+    pub object_id: String,
+    pub old_owner_address: String,
+    pub new_owner_address: String,
+    pub tx_seq_checkpoint: i64,
+    pub tx_digest: String,
+    pub timestamp: DateTime<Utc>,
 }

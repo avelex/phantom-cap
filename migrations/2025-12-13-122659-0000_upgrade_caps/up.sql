@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS upgrade_cap_transfers_history (
     new_owner_address TEXT NOT NULL,
     tx_seq_checkpoint BIGINT NOT NULL,
     tx_digest TEXT NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (object_id, tx_digest)
 );
 
@@ -33,5 +34,6 @@ CREATE TABLE IF NOT EXISTS upgrade_cap_versions_history (
     version INT NOT NULL,
     tx_seq_checkpoint BIGINT NOT NULL,
     tx_digest TEXT NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (object_id, version)
 );

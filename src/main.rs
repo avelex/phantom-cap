@@ -1,7 +1,9 @@
 mod models;
 mod upgrade_cap_handler;
+mod upgrade_cap_transfer_handler;
 
 use upgrade_cap_handler::UpgradeCapHandler;
+use upgrade_cap_transfer_handler::UpgradeCapTransferHandler;
 
 pub mod schema;
 
@@ -37,6 +39,10 @@ async fn main() -> Result<()> {
 
     cluster
         .sequential_pipeline(UpgradeCapHandler, SequentialConfig::default())
+        .await?;
+
+    cluster
+        .sequential_pipeline(UpgradeCapTransferHandler, SequentialConfig::default())
         .await?;
 
     println!("Running Sequential Indexer");

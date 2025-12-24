@@ -7,19 +7,13 @@ pub mod sql_types {
 }
 
 diesel::table! {
-    transaction_digests (tx_digest) {
-        tx_digest -> Text,
-        checkpoint_sequence_number -> Int8,
-    }
-}
-
-diesel::table! {
     upgrade_cap_transfers_history (object_id, tx_digest) {
         object_id -> Text,
         old_owner_address -> Text,
         new_owner_address -> Text,
         tx_seq_checkpoint -> Int8,
         tx_digest -> Text,
+        timestamp -> Timestamptz,
     }
 }
 
@@ -29,6 +23,7 @@ diesel::table! {
         version -> Int4,
         tx_seq_checkpoint -> Int8,
         tx_digest -> Text,
+        timestamp -> Timestamptz,
     }
 }
 
@@ -50,7 +45,6 @@ diesel::table! {
 }
 
 diesel::allow_tables_to_appear_in_same_query!(
-    transaction_digests,
     upgrade_cap_transfers_history,
     upgrade_cap_versions_history,
     upgrade_caps,
