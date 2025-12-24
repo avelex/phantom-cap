@@ -8,6 +8,7 @@ use sui_indexer_alt_framework::{
     postgres::{Connection, Db},
 };
 use sui_types::object::Owner;
+use sui_types::storage::ObjectKey;
 use sui_types::{
     base_types::{ObjectID, SuiAddress},
     effects::TransactionEffectsAPI,
@@ -18,7 +19,7 @@ use sui_types::{
 };
 
 use crate::schema::upgrade_caps::dsl::*;
-use crate::{models::UpgradeCap, models::UpgradeCompatibilityPolicyEnum, schema::upgrade_caps};
+use crate::{models::UpgradeCap, models::UpgradeCompatibilityPolicyEnum};
 
 pub struct UpgradeCapHandler;
 
@@ -46,10 +47,20 @@ fn publish_command_exists(checkpoint: &Arc<Checkpoint>) -> Vec<&ExecutedTransact
 pub struct OwnableUpgradeCap {
     upgrade_cap: UpgradeCapMove,
     owner: String,
+    tx_digest: String,
 }
 
-fn get_upgrade_cap(tx: &ExecutedTransaction, object_set: &ObjectSet) -> Option<OwnableUpgradeCap> {
-    for obj in tx.output_objects(object_set) {
+fn get_created_upgrade_caps(
+    tx: &ExecutedTransaction,
+    object_set: &ObjectSet,
+) -> Vec<OwnableUpgradeCap> {
+    let mut caps: Vec<OwnableUpgradeCap> = Vec::new();
+
+    for effects in tx.effects.created() {
+        let obj = object_set
+            .get(&ObjectKey(effects.0.0, effects.0.1))
+            .unwrap();
+
         let owner = match obj.owner() {
             Owner::AddressOwner(address) => address.to_string(),
             Owner::ObjectOwner(address) => address.to_string(),
@@ -71,13 +82,17 @@ fn get_upgrade_cap(tx: &ExecutedTransaction, object_set: &ObjectSet) -> Option<O
 
                 let upgrade_cap = move_object.to_rust::<UpgradeCapMove>().unwrap();
 
-                return Some(OwnableUpgradeCap { upgrade_cap, owner });
+                caps.push(OwnableUpgradeCap {
+                    upgrade_cap,
+                    owner,
+                    tx_digest: tx.transaction.digest().to_string(),
+                });
             }
             _ => continue,
         }
     }
 
-    None
+    caps
 }
 
 #[async_trait::async_trait]
@@ -96,13 +111,13 @@ impl Processor for UpgradeCapHandler {
             return Ok(vec![]);
         }
 
-        let mut caps: Vec<Self::Value> = Vec::new();
-
-        for tx in published_txs.iter() {
-            if let Some(ownable_upgrade_cap) = get_upgrade_cap(tx, &checkpoint.object_set) {
+        Ok(published_txs
+            .iter()
+            .flat_map(|tx| get_created_upgrade_caps(tx, &checkpoint.object_set))
+            .map(|ownable_upgrade_cap| {
                 println!(
                     "TX: {} Upgrade cap: {} Policy: {}",
-                    tx.transaction.digest(),
+                    ownable_upgrade_cap.tx_digest,
                     ownable_upgrade_cap
                         .upgrade_cap
                         .id
@@ -111,7 +126,7 @@ impl Processor for UpgradeCapHandler {
                     ownable_upgrade_cap.upgrade_cap.policy
                 );
 
-                caps.push(UpgradeCap {
+                UpgradeCap {
                     object_id: ownable_upgrade_cap
                         .upgrade_cap
                         .id
@@ -126,14 +141,12 @@ impl Processor for UpgradeCapHandler {
                     policy: UpgradeCompatibilityPolicyEnum::Compatible,
                     version: ownable_upgrade_cap.upgrade_cap.version as i64,
                     init_seq_checkpoint: checkpoint_seq,
-                    init_tx_digest: tx.transaction.digest().to_string(),
+                    init_tx_digest: ownable_upgrade_cap.tx_digest,
                     created_at: timestamp,
                     updated_at: timestamp,
-                });
-            }
-        }
-
-        Ok(caps)
+                }
+            })
+            .collect::<Vec<Self::Value>>())
     }
 }
 
