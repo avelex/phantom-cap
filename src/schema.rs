@@ -7,7 +7,7 @@ pub mod sql_types {
 }
 
 diesel::table! {
-    upgrade_cap_transfers_history (object_id, tx_digest) {
+    upgrade_cap_transfers (object_id, tx_digest) {
         object_id -> Text,
         old_owner_address -> Text,
         new_owner_address -> Text,
@@ -18,9 +18,10 @@ diesel::table! {
 }
 
 diesel::table! {
-    upgrade_cap_versions_history (object_id, version) {
+    upgrade_cap_versions (object_id, version) {
         object_id -> Text,
-        version -> Int4,
+        package_id -> Text,
+        version -> Int8,
         tx_seq_checkpoint -> Int8,
         tx_digest -> Text,
         timestamp -> Timestamptz,
@@ -45,7 +46,7 @@ diesel::table! {
 }
 
 diesel::allow_tables_to_appear_in_same_query!(
-    upgrade_cap_transfers_history,
-    upgrade_cap_versions_history,
+    upgrade_cap_transfers,
+    upgrade_cap_versions,
     upgrade_caps,
 );

@@ -1,6 +1,8 @@
 use anyhow::Result;
 use chrono::DateTime;
-use diesel_async::RunQueryDsl;
+use diesel::result::Error;
+use diesel_async::scoped_futures::ScopedFutureExt;
+use diesel_async::{AsyncConnection, RunQueryDsl};
 use std::sync::Arc;
 use sui_indexer_alt_framework::pipeline::Processor;
 use sui_indexer_alt_framework::{
@@ -10,7 +12,6 @@ use sui_indexer_alt_framework::{
 use sui_types::object::Owner;
 use sui_types::storage::ObjectKey;
 use sui_types::{
-    base_types::{ObjectID, SuiAddress},
     effects::TransactionEffectsAPI,
     full_checkpoint_content::{Checkpoint, ExecutedTransaction, ObjectSet},
     move_package::UpgradeCap as UpgradeCapMove,
@@ -18,6 +19,14 @@ use sui_types::{
     transaction::{Command, TransactionDataAPI, TransactionKind},
 };
 
+use crate::schema::upgrade_cap_transfers::dsl::{
+    object_id as upgrade_cap_transfers_object_id, tx_digest as upgrade_cap_transfers_tx_digest,
+    upgrade_cap_transfers,
+};
+use crate::schema::upgrade_cap_versions::dsl::{
+    object_id as upgrade_cap_versions_object_id, upgrade_cap_versions,
+    version as upgrade_cap_versions_version,
+};
 use crate::schema::upgrade_caps::dsl::*;
 use crate::{models::UpgradeCap, models::UpgradeCompatibilityPolicyEnum};
 
@@ -97,7 +106,7 @@ fn get_created_upgrade_caps(
 
 #[async_trait::async_trait]
 impl Processor for UpgradeCapHandler {
-    const NAME: &'static str = "upgrade_cap_handler";
+    const NAME: &'static str = "created_handler";
 
     type Value = UpgradeCap;
 
@@ -159,12 +168,50 @@ impl Handler for UpgradeCapHandler {
     }
 
     async fn commit<'a>(&self, batch: &Self::Batch, conn: &mut Connection<'a>) -> Result<usize> {
-        let inserted = diesel::insert_into(upgrade_caps)
-            .values(batch)
-            .on_conflict(object_id)
-            .do_nothing()
-            .execute(conn)
+        let batch = batch.clone();
+        let result = conn
+            .transaction::<usize, Error, _>(|tx_conn| {
+                async move {
+                    let inserted = diesel::insert_into(upgrade_caps)
+                        .values(&batch)
+                        .on_conflict(object_id)
+                        .do_nothing()
+                        .execute(tx_conn)
+                        .await?;
+
+                    let creation_transfers = batch
+                        .iter()
+                        .map(|cap| cap.creation_transfer())
+                        .collect::<Vec<_>>();
+
+                    diesel::insert_into(upgrade_cap_transfers)
+                        .values(creation_transfers)
+                        .on_conflict((
+                            upgrade_cap_transfers_object_id,
+                            upgrade_cap_transfers_tx_digest,
+                        ))
+                        .do_nothing()
+                        .execute(tx_conn)
+                        .await?;
+
+                    let creation_versions = batch
+                        .iter()
+                        .map(|cap| cap.creation_version())
+                        .collect::<Vec<_>>();
+
+                    diesel::insert_into(upgrade_cap_versions)
+                        .values(creation_versions)
+                        .on_conflict((upgrade_cap_versions_object_id, upgrade_cap_versions_version))
+                        .do_nothing()
+                        .execute(tx_conn)
+                        .await?;
+
+                    Ok(inserted)
+                }
+                .scope_boxed()
+            })
             .await?;
-        Ok(inserted)
+
+        Ok(result)
     }
 }

@@ -7,26 +7,23 @@ use sui_indexer_alt_framework::{
     pipeline::sequential::Handler,
     postgres::{Connection, Db},
 };
-use sui_types::object::Owner;
 use sui_types::storage::ObjectKey;
-use sui_types::transaction::{Argument, CallArg, InputObjectKind, ObjectArg};
+use sui_types::transaction::{Argument, CallArg, ObjectArg};
 use sui_types::{
-    base_types::{ObjectID, SuiAddress},
-    effects::TransactionEffectsAPI,
-    full_checkpoint_content::{Checkpoint, ExecutedTransaction, ObjectSet},
-    move_package::UpgradeCap as UpgradeCapMove,
+    base_types::SuiAddress,
+    full_checkpoint_content::Checkpoint,
     object::Data,
     transaction::{Command, TransactionDataAPI, TransactionKind},
 };
 
 use crate::models::UpgradeCapTransfer;
-use crate::schema::upgrade_cap_transfers_history::dsl::*;
+use crate::schema::upgrade_cap_transfers::dsl::*;
 
-pub struct UpgradeCapTransferHandler;
+pub struct UpgradeCapHandler;
 
 #[async_trait::async_trait]
-impl Processor for UpgradeCapTransferHandler {
-    const NAME: &'static str = "upgrade_cap_transfer_handler";
+impl Processor for UpgradeCapHandler {
+    const NAME: &'static str = "transfer_handler";
     type Value = UpgradeCapTransfer;
 
     async fn process(&self, checkpoint: &Arc<Checkpoint>) -> Result<Vec<Self::Value>> {
@@ -115,7 +112,7 @@ impl Processor for UpgradeCapTransferHandler {
 }
 
 #[async_trait::async_trait]
-impl Handler for UpgradeCapTransferHandler {
+impl Handler for UpgradeCapHandler {
     type Store = Db;
     type Batch = Vec<Self::Value>;
 
@@ -124,7 +121,7 @@ impl Handler for UpgradeCapTransferHandler {
     }
 
     async fn commit<'a>(&self, batch: &Self::Batch, conn: &mut Connection<'a>) -> Result<usize> {
-        let inserted = diesel::insert_into(upgrade_cap_transfers_history)
+        let inserted = diesel::insert_into(upgrade_cap_transfers)
             .values(batch)
             .on_conflict((object_id, tx_digest))
             .do_nothing()

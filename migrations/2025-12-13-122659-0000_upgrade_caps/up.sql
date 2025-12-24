@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS upgrade_caps (
 );
 
 
-CREATE TABLE IF NOT EXISTS upgrade_cap_transfers_history (
+CREATE TABLE IF NOT EXISTS upgrade_cap_transfers (
     object_id TEXT NOT NULL,
     old_owner_address TEXT NOT NULL,
     new_owner_address TEXT NOT NULL,
@@ -29,9 +29,10 @@ CREATE TABLE IF NOT EXISTS upgrade_cap_transfers_history (
     PRIMARY KEY (object_id, tx_digest)
 );
 
-CREATE TABLE IF NOT EXISTS upgrade_cap_versions_history (
+CREATE TABLE IF NOT EXISTS upgrade_cap_versions (
     object_id TEXT NOT NULL,
-    version INT NOT NULL,
+    package_id TEXT NOT NULL,
+    version BIGINT NOT NULL,
     tx_seq_checkpoint BIGINT NOT NULL,
     tx_digest TEXT NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,

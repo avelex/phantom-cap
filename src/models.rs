@@ -1,17 +1,15 @@
-use std::io::Write;
-use std::time::SystemTime;
-
 use crate::schema::sql_types::UpgradeCompatibilityPolicy;
 use crate::schema::*;
 use chrono::{DateTime, Utc};
-use diesel::data_types::PgTimestamp;
 use diesel::deserialize::{FromSql, FromSqlRow};
 use diesel::expression::AsExpression;
 use diesel::pg::{Pg, PgValue};
 use diesel::prelude::*;
 use diesel::serialize::{IsNull, Output, ToSql};
 use diesel::*;
+use std::io::Write;
 use sui_indexer_alt_framework::FieldCount;
+use sui_types::base_types::SuiAddress;
 
 #[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq, Clone)]
 #[diesel(sql_type = UpgradeCompatibilityPolicy)]
@@ -60,12 +58,47 @@ pub struct UpgradeCap {
     pub updated_at: DateTime<Utc>,
 }
 
+impl UpgradeCap {
+    pub fn creation_version(&self) -> UpgradeCapVersion {
+        UpgradeCapVersion {
+            object_id: self.object_id.clone(),
+            package_id: self.package_id.clone(),
+            version: self.version,
+            tx_seq_checkpoint: self.init_seq_checkpoint,
+            tx_digest: self.init_tx_digest.clone(),
+            timestamp: self.created_at,
+        }
+    }
+
+    pub fn creation_transfer(&self) -> UpgradeCapTransfer {
+        UpgradeCapTransfer {
+            object_id: self.object_id.clone(),
+            old_owner_address: SuiAddress::ZERO.to_string(),
+            new_owner_address: self.owner_address.clone(),
+            tx_seq_checkpoint: self.init_seq_checkpoint,
+            tx_digest: self.init_tx_digest.clone(),
+            timestamp: self.created_at,
+        }
+    }
+}
+
 #[derive(Insertable, Clone, FieldCount, Debug)]
-#[diesel(table_name = upgrade_cap_transfers_history)]
+#[diesel(table_name = upgrade_cap_transfers)]
 pub struct UpgradeCapTransfer {
     pub object_id: String,
     pub old_owner_address: String,
     pub new_owner_address: String,
+    pub tx_seq_checkpoint: i64,
+    pub tx_digest: String,
+    pub timestamp: DateTime<Utc>,
+}
+
+#[derive(Insertable, Clone, FieldCount, Debug)]
+#[diesel(table_name = upgrade_cap_versions)]
+pub struct UpgradeCapVersion {
+    pub object_id: String,
+    pub package_id: String,
+    pub version: i64,
     pub tx_seq_checkpoint: i64,
     pub tx_digest: String,
     pub timestamp: DateTime<Utc>,
