@@ -2,7 +2,10 @@ mod handlers;
 mod models;
 mod schema;
 
-use handlers::*;
+use handlers::{
+    created::UpgradeCapHandler as CreatedHandler, transfer::UpgradeCapHandler as TransferHandler,
+    upgrade::UpgradeCapHandler as UpgradeHandler,
+};
 
 use anyhow::Result;
 use clap::Parser;
@@ -35,11 +38,15 @@ async fn main() -> Result<()> {
         .await?;
 
     cluster
-        .sequential_pipeline(created::UpgradeCapHandler, SequentialConfig::default())
+        .sequential_pipeline(CreatedHandler, SequentialConfig::default())
         .await?;
 
     cluster
-        .sequential_pipeline(transfer::UpgradeCapHandler, SequentialConfig::default())
+        .sequential_pipeline(TransferHandler, SequentialConfig::default())
+        .await?;
+
+    cluster
+        .sequential_pipeline(UpgradeHandler, SequentialConfig::default())
         .await?;
 
     println!("Running Sequential Indexer");

@@ -37,7 +37,8 @@ fn publish_command_exists(checkpoint: &Arc<Checkpoint>) -> Vec<&ExecutedTransact
 
     for tx in checkpoint.transactions.iter() {
         match tx.transaction.kind() {
-            TransactionKind::ProgrammableTransaction(program_tx) => {
+            TransactionKind::ProgrammableTransaction(program_tx)
+            | TransactionKind::ProgrammableSystemTransaction(program_tx) => {
                 if program_tx
                     .commands
                     .iter()
@@ -122,6 +123,7 @@ impl Processor for UpgradeCapHandler {
 
         Ok(published_txs
             .iter()
+            .filter(|tx| tx.effects.status().is_ok())
             .flat_map(|tx| get_created_upgrade_caps(tx, &checkpoint.object_set))
             .map(|ownable_upgrade_cap| {
                 println!(

@@ -7,6 +7,7 @@ use sui_indexer_alt_framework::{
     pipeline::sequential::Handler,
     postgres::{Connection, Db},
 };
+use sui_types::effects::TransactionEffectsAPI;
 use sui_types::storage::ObjectKey;
 use sui_types::transaction::{Argument, CallArg, ObjectArg};
 use sui_types::{
@@ -34,6 +35,7 @@ impl Processor for UpgradeCapHandler {
         Ok(checkpoint
             .transactions
             .iter()
+            .filter(|tx| tx.effects.status().is_ok())
             .flat_map(|tx| {
                 let pt = match tx.transaction.kind() {
                     TransactionKind::ProgrammableTransaction(pt) => pt,
