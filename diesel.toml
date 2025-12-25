@@ -1,5 +1,5 @@
 [print_schema]
-file = "src/schema.rs"
+file = "crates/indexer/src/schema.rs"
 
 [migrations_directory]
-dir = "migrations"
+dir = "crates/indexer/migrations"
