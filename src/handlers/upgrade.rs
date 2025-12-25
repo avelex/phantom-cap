@@ -25,13 +25,10 @@ pub struct UpgradeCapHandler;
 
 #[async_trait::async_trait]
 impl Processor for UpgradeCapHandler {
-    const NAME: &'static str = "upgrade_cap_handler";
+    const NAME: &'static str = "upgrade_handler";
 
     type Value = UpgradeCapVersion;
 
-    // нужно найти транзакции где есть MoveCall(commit_upgrade),
-    // 1 аргумент должен быть upgrade cap, найти его в mutaded
-    // преобразовать upgrade cap в upgrade cap version
     async fn process(&self, checkpoint: &Arc<Checkpoint>) -> Result<Vec<Self::Value>> {
         let checkpoint_seq = checkpoint.summary.sequence_number as i64;
         let checkpoint_timestamp =
@@ -117,7 +114,7 @@ impl Processor for UpgradeCapHandler {
                                 version: upgrade_cap.version as i64,
                                 package_id: upgrade_cap.package.bytes.to_hex_literal(),
                                 tx_digest: tx.transaction.digest().to_string(),
-                                tx_seq_checkpoint: checkpoint_seq,
+                                seq_checkpoint: checkpoint_seq,
                                 timestamp: checkpoint_timestamp,
                             })
                         } else {

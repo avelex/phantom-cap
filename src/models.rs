@@ -44,28 +44,35 @@ impl FromSql<UpgradeCompatibilityPolicy, Pg> for UpgradeCompatibilityPolicyEnum 
     }
 }
 
-#[derive(Insertable, Clone, FieldCount)]
-#[diesel(table_name = upgrade_caps)]
-pub struct UpgradeCap {
+pub struct FullUpgradeCap {
     pub object_id: String,
     pub package_id: String,
+    pub version: i64,
     pub owner_address: String,
     pub policy: UpgradeCompatibilityPolicyEnum,
-    pub version: i64,
-    pub init_seq_checkpoint: i64,
-    pub init_tx_digest: String,
+    pub created_seq_checkpoint: i64,
+    pub created_tx_digest: String,
     pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
 }
 
-impl UpgradeCap {
+impl FullUpgradeCap {
+    pub fn db_dto(&self) -> UpgradeCap {
+        UpgradeCap {
+            object_id: self.object_id.clone(),
+            policy: self.policy.clone(),
+            created_seq_checkpoint: self.created_seq_checkpoint,
+            created_tx_digest: self.created_tx_digest.clone(),
+            created_at: self.created_at,
+        }
+    }
+
     pub fn creation_version(&self) -> UpgradeCapVersion {
         UpgradeCapVersion {
             object_id: self.object_id.clone(),
             package_id: self.package_id.clone(),
             version: self.version,
-            tx_seq_checkpoint: self.init_seq_checkpoint,
-            tx_digest: self.init_tx_digest.clone(),
+            seq_checkpoint: self.created_seq_checkpoint,
+            tx_digest: self.created_tx_digest.clone(),
             timestamp: self.created_at,
         }
     }
@@ -75,11 +82,21 @@ impl UpgradeCap {
             object_id: self.object_id.clone(),
             old_owner_address: SuiAddress::ZERO.to_string(),
             new_owner_address: self.owner_address.clone(),
-            tx_seq_checkpoint: self.init_seq_checkpoint,
-            tx_digest: self.init_tx_digest.clone(),
+            seq_checkpoint: self.created_seq_checkpoint,
+            tx_digest: self.created_tx_digest.clone(),
             timestamp: self.created_at,
         }
     }
+}
+
+#[derive(Insertable, Clone, FieldCount)]
+#[diesel(table_name = upgrade_caps)]
+pub struct UpgradeCap {
+    pub object_id: String,
+    pub policy: UpgradeCompatibilityPolicyEnum,
+    pub created_seq_checkpoint: i64,
+    pub created_tx_digest: String,
+    pub created_at: DateTime<Utc>,
 }
 
 #[derive(Insertable, Clone, FieldCount, Debug)]
@@ -88,7 +105,7 @@ pub struct UpgradeCapTransfer {
     pub object_id: String,
     pub old_owner_address: String,
     pub new_owner_address: String,
-    pub tx_seq_checkpoint: i64,
+    pub seq_checkpoint: i64,
     pub tx_digest: String,
     pub timestamp: DateTime<Utc>,
 }
@@ -99,7 +116,7 @@ pub struct UpgradeCapVersion {
     pub object_id: String,
     pub package_id: String,
     pub version: i64,
-    pub tx_seq_checkpoint: i64,
+    pub seq_checkpoint: i64,
     pub tx_digest: String,
     pub timestamp: DateTime<Utc>,
 }

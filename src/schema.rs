@@ -11,7 +11,7 @@ diesel::table! {
         object_id -> Text,
         old_owner_address -> Text,
         new_owner_address -> Text,
-        tx_seq_checkpoint -> Int8,
+        seq_checkpoint -> Int8,
         tx_digest -> Text,
         timestamp -> Timestamptz,
     }
@@ -22,7 +22,7 @@ diesel::table! {
         object_id -> Text,
         package_id -> Text,
         version -> Int8,
-        tx_seq_checkpoint -> Int8,
+        seq_checkpoint -> Int8,
         tx_digest -> Text,
         timestamp -> Timestamptz,
     }
@@ -34,14 +34,10 @@ diesel::table! {
 
     upgrade_caps (object_id) {
         object_id -> Text,
-        package_id -> Text,
-        owner_address -> Text,
         policy -> UpgradeCompatibilityPolicy,
-        version -> Int8,
-        init_seq_checkpoint -> Int8,
-        init_tx_digest -> Text,
+        created_seq_checkpoint -> Int8,
+        created_tx_digest -> Text,
         created_at -> Timestamptz,
-        updated_at -> Timestamptz,
     }
 }
 

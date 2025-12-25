@@ -25,6 +25,7 @@ pub struct UpgradeCapHandler;
 #[async_trait::async_trait]
 impl Processor for UpgradeCapHandler {
     const NAME: &'static str = "transfer_handler";
+
     type Value = UpgradeCapTransfer;
 
     async fn process(&self, checkpoint: &Arc<Checkpoint>) -> Result<Vec<Self::Value>> {
@@ -102,7 +103,7 @@ impl Processor for UpgradeCapHandler {
                                 old_owner_address: obj.get_single_owner().unwrap().to_string(),
                                 new_owner_address: receiver_address.to_string(),
                                 tx_digest: tx.transaction.digest().to_string(),
-                                tx_seq_checkpoint: checkpoint_seq,
+                                seq_checkpoint: checkpoint_seq,
                                 timestamp: checkpoint_timestamp,
                             })
                         })

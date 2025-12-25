@@ -19,6 +19,7 @@ use sui_types::{
     transaction::{Command, TransactionDataAPI, TransactionKind},
 };
 
+use crate::models::FullUpgradeCap;
 use crate::schema::upgrade_cap_transfers::dsl::{
     object_id as upgrade_cap_transfers_object_id, tx_digest as upgrade_cap_transfers_tx_digest,
     upgrade_cap_transfers,
@@ -109,7 +110,7 @@ fn get_created_upgrade_caps(
 impl Processor for UpgradeCapHandler {
     const NAME: &'static str = "created_handler";
 
-    type Value = UpgradeCap;
+    type Value = FullUpgradeCap;
 
     async fn process(&self, checkpoint: &Arc<Checkpoint>) -> Result<Vec<Self::Value>> {
         let checkpoint_seq = checkpoint.summary.sequence_number as i64;
@@ -136,7 +137,7 @@ impl Processor for UpgradeCapHandler {
                         .to_hex_literal(),
                 );
 
-                UpgradeCap {
+                FullUpgradeCap {
                     object_id: ownable_upgrade_cap
                         .upgrade_cap
                         .id
@@ -150,10 +151,9 @@ impl Processor for UpgradeCapHandler {
                     owner_address: ownable_upgrade_cap.owner,
                     policy: UpgradeCompatibilityPolicyEnum::Compatible,
                     version: ownable_upgrade_cap.upgrade_cap.version as i64,
-                    init_seq_checkpoint: checkpoint_seq,
-                    init_tx_digest: ownable_upgrade_cap.tx_digest,
+                    created_seq_checkpoint: checkpoint_seq,
+                    created_tx_digest: ownable_upgrade_cap.tx_digest,
                     created_at: timestamp,
-                    updated_at: timestamp,
                 }
             })
             .collect::<Vec<Self::Value>>())
@@ -170,21 +170,27 @@ impl Handler for UpgradeCapHandler {
     }
 
     async fn commit<'a>(&self, batch: &Self::Batch, conn: &mut Connection<'a>) -> Result<usize> {
-        let batch = batch.clone();
+        let creation_caps = batch.iter().map(|cap| cap.db_dto()).collect::<Vec<_>>();
+
+        let creation_transfers = batch
+            .iter()
+            .map(|cap| cap.creation_transfer())
+            .collect::<Vec<_>>();
+
+        let creation_versions = batch
+            .iter()
+            .map(|cap| cap.creation_version())
+            .collect::<Vec<_>>();
+
         let result = conn
             .transaction::<usize, Error, _>(|tx_conn| {
                 async move {
                     let inserted = diesel::insert_into(upgrade_caps)
-                        .values(&batch)
+                        .values(&creation_caps)
                         .on_conflict(object_id)
                         .do_nothing()
                         .execute(tx_conn)
                         .await?;
-
-                    let creation_transfers = batch
-                        .iter()
-                        .map(|cap| cap.creation_transfer())
-                        .collect::<Vec<_>>();
 
                     diesel::insert_into(upgrade_cap_transfers)
                         .values(creation_transfers)
@@ -195,11 +201,6 @@ impl Handler for UpgradeCapHandler {
                         .do_nothing()
                         .execute(tx_conn)
                         .await?;
-
-                    let creation_versions = batch
-                        .iter()
-                        .map(|cap| cap.creation_version())
-                        .collect::<Vec<_>>();
 
                     diesel::insert_into(upgrade_cap_versions)
                         .values(creation_versions)
