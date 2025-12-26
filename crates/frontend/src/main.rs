@@ -3,43 +3,24 @@ use yew_router::prelude::*;
 
 mod components;
 mod pages;
+mod router;
 use components::*;
-use pages::*;
-
-#[derive(Routable, Clone, PartialEq)]
-enum Route {
-    #[at("/")]
-    Home,
-    #[at("/cap/:id")]
-    UpgradeCap { id: AttrValue },
-    #[not_found]
-    #[at("/404")]
-    NotFound,
-}
-
-fn switch(route: Route) -> Html {
-    match route {
-        Route::Home => html! { <home::HomePage /> },
-        Route::UpgradeCap { id } => html! { <upgrade_cap::UpgradeCapPage id={id} /> },
-        Route::NotFound => html! { <not_found::NotFoundPage /> },
-    }
-}
+use router::route::{Route, switch};
 
 #[component]
 fn App() -> Html {
     html! {
         <BrowserRouter>
-            <div class="flex flex-col h-screen">
+            <div class="h-screen w-full h-full border-2 border-black flex flex-col">
                 <header::Header />
-                <main>
-                    <Switch<Route> render={switch} />
-                </main>
-                <footer::Footer />
+                <Switch<Route> render={switch} />
+                //<footer::Footer />
             </div>
         </BrowserRouter>
     }
 }
 
 fn main() {
+    wasm_logger::init(wasm_logger::Config::default());
     yew::Renderer::<App>::new().render();
 }
