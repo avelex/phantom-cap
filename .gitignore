@@ -1,3 +1,4 @@
 /target
 .env
 /crates/frontend/dist
+/crates/frontend/node_modules
