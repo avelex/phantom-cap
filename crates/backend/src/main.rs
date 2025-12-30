@@ -41,6 +41,7 @@ struct SearchResult {
 #[template(path = "upgrade_cap.html")]
 struct Cap {
     id: String,
+    short_id: String,
     package: String,
     version: String,
     policy: String,
@@ -196,7 +197,8 @@ async fn fetch_cap_details(
     };
 
     Ok(Cap {
-        id: cap.object_id,
+        id: cap.object_id.clone(),
+        short_id: short_sui_object_id(&cap.object_id),
         package,
         version: version_str,
         policy: policy_str,
