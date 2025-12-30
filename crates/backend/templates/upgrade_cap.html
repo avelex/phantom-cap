@@ -47,5 +47,72 @@
             </div>
         </div>
     </div>
+    <!-- Tabs & Table Section -->
+    <div x-data="{ tab: 'upgrades' }" class="col-span-1 md:col-span-2 flex flex-col gap-6">
+        <!-- Tab Buttons -->
+        <div class="flex gap-4">
+            <button 
+                @click="tab = 'upgrades'"
+                :class="tab === 'upgrades' ? 'bg-[#5D5FEF] text-white' : 'bg-white text-black'"
+                class="px-8 py-3 rounded-xl border-[3px] border-black font-bold text-xl shadow-hard transition-all active:translate-y-1"
+                hx-get="/cap/{{ id }}/versions"
+                hx-trigger="load, click"
+                hx-target="#table-body"
+                hx-select="#table-body">
+                Upgrades
+            </button>
+            <button 
+                @click="tab = 'transfers'"
+                :class="tab === 'transfers' ? 'bg-[#5D5FEF] text-white' : 'bg-white text-black'"
+                class="px-8 py-3 rounded-xl border-[3px] border-black font-bold text-xl shadow-hard transition-all active:translate-y-1"
+                hx-get="/cap/{{ id }}/transfers"
+                hx-target="#table-body"
+                hx-select="#table-body">
+                Transfers
+            </button>
+        </div>
+
+        <!-- content Card -->
+        <div class="bg-white border-[3px] border-black rounded-[2.5rem] p-8 shadow-hard min-h-[300px]">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xl border-separate border-spacing-y-4">
+                    <!-- Upgrades Header -->
+                    <thead x-show="tab === 'upgrades'">
+                        <tr class="text-black font-bold">
+                            <th class="pb-2">Version</th>
+                            <th class="pb-2">Package ID</th>
+                            <th class="pb-2">Tx Digest</th>
+                            <th class="pb-2">Checkpoint</th>
+                            <th class="pb-2">Age</th>
+                        </tr>
+                    </thead>
+                    <!-- Transfers Header -->
+                    <thead x-show="tab === 'transfers'" style="display: none;">
+                        <tr class="text-black font-bold">
+                            <th class="pb-2">Tx Digest</th>
+                            <th class="pb-2">Checkpoint</th>
+                            <th class="pb-2">Age</th>
+                            <th class="pb-2">From</th>
+                            <th class="pb-2">To</th>
+                        </tr>
+                    </thead>
+                    
+                    <!-- Table Body (Target for HTMX) -->
+                    <tbody id="table-body" class="font-medium text-lg space-y-4">
+                        <!-- Placeholder Rows (will be replaced by HTMX) -->
+                        <tr class="bg-white border-[3px] border-black rounded-xl">
+                            <td colspan="5" class="py-4 px-6 border-[3px] border-black rounded-xl">&nbsp;</td>
+                        </tr>
+                         <tr class="bg-white border-[3px] border-black rounded-xl">
+                            <td colspan="5" class="py-4 px-6 border-[3px] border-black rounded-xl">&nbsp;</td>
+                        </tr>
+                         <tr class="bg-white border-[3px] border-black rounded-xl">
+                            <td colspan="5" class="py-4 px-6 border-[3px] border-black rounded-xl">&nbsp;</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
