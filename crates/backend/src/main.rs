@@ -3,7 +3,7 @@ use std::str::FromStr;
 use actix_web::web::Html;
 use actix_web::{App, HttpServer, Responder, error, get, web};
 use askama::Template;
-use chrono::DateTime;
+use chrono::{DateTime, Utc};
 use diesel::OptionalExtension;
 use diesel::{ExpressionMethods, QueryDsl, QueryResult};
 use diesel_async::{
@@ -51,12 +51,34 @@ struct Cap {
     time_ago: String,
 }
 
-struct CapVersion {
-    version: i64,
-    package_id: String,
-    tx_digest: String,
-    seq_checkpoint: i64,
-    time_ago: String,
+#[derive(Template)]
+#[template(path = "cap_versions.html")]
+struct CapVersionsTemplate {
+    versions: Vec<CapVersion>,
+}
+
+#[derive(Template)]
+#[template(path = "cap_transfers.html")]
+struct CapTransfersTemplate {
+    transfers: Vec<CapTransfer>,
+}
+
+pub struct CapVersion {
+    pub version: i64,
+    pub package_id: String,
+    pub tx_digest: String,
+    pub tx_url: String,
+    pub seq_checkpoint: i64,
+    pub time_ago: String,
+}
+
+pub struct CapTransfer {
+    pub tx_digest: String,
+    pub tx_url: String,
+    pub seq_checkpoint: i64,
+    pub time_ago: String,
+    pub from: String,
+    pub to: String,
 }
 
 #[derive(Deserialize)]
@@ -116,9 +138,32 @@ async fn show_cap_transfers(
     id: web::Path<String>,
 ) -> actix_web::Result<Html> {
     let mut conn = pool.get().await.map_err(error::ErrorInternalServerError)?;
-    let cap = fetch_cap_details(&mut conn, &id).await?;
+    let transfers = fetch_cap_transfers_history(&mut conn, &id)
+        .await
+        .unwrap_or(vec![]);
+
+    let now = chrono::Utc::now();
+    let transfer_views = transfers
+        .iter()
+        .map(|t| {
+            let time_ago = format_time_ago(&t.timestamp, &now);
+            CapTransfer {
+                tx_digest: short_sui_object_id(&t.tx_digest),
+                tx_url: sui_tx_url(&t.tx_digest),
+                seq_checkpoint: t.seq_checkpoint,
+                time_ago,
+                from: short_sui_object_id(&t.old_owner_address),
+                to: short_sui_object_id(&t.new_owner_address),
+            }
+        })
+        .collect();
+
     Ok(Html::new(
-        cap.render().map_err(error::ErrorInternalServerError)?,
+        CapTransfersTemplate {
+            transfers: transfer_views,
+        }
+        .render()
+        .map_err(error::ErrorInternalServerError)?,
     ))
 }
 
@@ -128,9 +173,32 @@ async fn show_cap_versions(
     id: web::Path<String>,
 ) -> actix_web::Result<Html> {
     let mut conn = pool.get().await.map_err(error::ErrorInternalServerError)?;
-    let cap = fetch_cap_details(&mut conn, &id).await?;
+    let versions = fetch_cap_versions_history(&mut conn, &id)
+        .await
+        .unwrap_or(vec![]);
+
+    let now = chrono::Utc::now();
+    let version_views = versions
+        .iter()
+        .map(|v| {
+            let time_ago = format_time_ago(&v.timestamp, &now);
+            CapVersion {
+                version: v.version,
+                package_id: short_sui_object_id(&v.package_id),
+                tx_digest: short_sui_object_id(&v.tx_digest),
+                tx_url: sui_tx_url(&v.tx_digest),
+                seq_checkpoint: v.seq_checkpoint,
+                time_ago,
+            }
+        })
+        .collect();
+
     Ok(Html::new(
-        cap.render().map_err(error::ErrorInternalServerError)?,
+        CapVersionsTemplate {
+            versions: version_views,
+        }
+        .render()
+        .map_err(error::ErrorInternalServerError)?,
     ))
 }
 
@@ -184,17 +252,8 @@ async fn fetch_cap_details(
     };
 
     let policy_str = cap.policy.to_string();
-
     let now = chrono::Utc::now();
-    let diff = now.signed_duration_since(cap.created_at);
-
-    let time_ago = if diff.num_days() > 0 {
-        format!("{}d ago", diff.num_days())
-    } else if diff.num_hours() > 0 {
-        format!("{}h ago", diff.num_hours())
-    } else {
-        format!("{}m ago", diff.num_minutes())
-    };
+    let time_ago = format_time_ago(&cap.created_at, &now);
 
     Ok(Cap {
         id: cap.object_id.clone(),
@@ -241,6 +300,18 @@ fn short_sui_object_id(id: &str) -> String {
 
 fn sui_tx_url(tx_digest: &str) -> String {
     format!("{}{}", SUI_TX_EXPLORER_URL, tx_digest)
+}
+
+fn format_time_ago(timestamp: &DateTime<Utc>, current: &DateTime<Utc>) -> String {
+    let diff = current.signed_duration_since(timestamp);
+    let time_ago = if diff.num_days() > 0 {
+        format!("{}d ago", diff.num_days())
+    } else if diff.num_hours() > 0 {
+        format!("{}h ago", diff.num_hours())
+    } else {
+        format!("{}m ago", diff.num_minutes())
+    };
+    time_ago
 }
 
 type DbPool = Pool<AsyncPgConnection>;

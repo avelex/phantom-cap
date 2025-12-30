@@ -57,8 +57,7 @@
                 class="px-8 py-3 rounded-xl border-[3px] border-black font-bold text-xl shadow-hard transition-all active:translate-y-1"
                 hx-get="/cap/{{ id }}/versions"
                 hx-trigger="load, click"
-                hx-target="#table-body"
-                hx-select="#table-body">
+                hx-target="#table-body">
                 Upgrades
             </button>
             <button 
@@ -66,8 +65,7 @@
                 :class="tab === 'transfers' ? 'bg-[#5D5FEF] text-white' : 'bg-white text-black'"
                 class="px-8 py-3 rounded-xl border-[3px] border-black font-bold text-xl shadow-hard transition-all active:translate-y-1"
                 hx-get="/cap/{{ id }}/transfers"
-                hx-target="#table-body"
-                hx-select="#table-body">
+                hx-target="#table-body">
                 Transfers
             </button>
         </div>

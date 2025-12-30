@@ -1,0 +1,11 @@
+{% for transfer in transfers %}
+<tr class="bg-white hover:bg-gray-50 transition-colors">
+    <td class="py-4 px-6 border-b border-r border-l border-black first:rounded-l-xl last:rounded-r-xl first:border-l-[3px] last:border-r-[3px] border-b-[3px]">
+        <a href="{{ transfer.tx_url }}" target="_blank" class="text-blue-600 hover:underline font-mono text-sm break-all">{{ transfer.tx_digest }}</a>
+    </td>
+    <td class="py-4 px-6 border-b border-r border-black border-b-[3px]">{{ transfer.seq_checkpoint }}</td>
+    <td class="py-4 px-6 border-b border-r border-black border-b-[3px]">{{ transfer.time_ago }}</td>
+    <td class="py-4 px-6 border-b border-r border-black border-b-[3px] font-mono text-sm break-all">{{ transfer.from }}</td>
+    <td class="py-4 px-6 border-b border-r border-black last:border-r-[3px] border-b-[3px] font-mono text-sm break-all">{{ transfer.to }}</td>
+</tr>
+{% endfor %}
