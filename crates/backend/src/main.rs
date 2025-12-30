@@ -39,7 +39,7 @@ struct SearchResult {
 
 #[derive(Template)]
 #[template(path = "upgrade_cap.html")]
-struct UpgradeCap {
+struct Cap {
     id: String,
     package: String,
     version: String,
@@ -47,6 +47,14 @@ struct UpgradeCap {
     owner: String,
     created_by: String,
     tx_digest_url: String,
+    time_ago: String,
+}
+
+struct CapVersion {
+    version: i64,
+    package_id: String,
+    tx_digest: String,
+    seq_checkpoint: i64,
     time_ago: String,
 }
 
@@ -128,7 +136,7 @@ async fn show_cap_versions(
 async fn fetch_cap_details(
     conn: &mut AsyncPgConnection,
     cap_id: &str,
-) -> Result<UpgradeCap, actix_web::Error> {
+) -> Result<Cap, actix_web::Error> {
     let cap = upgrade_caps_dsl::upgrade_caps
         .filter(upgrade_caps_dsl::object_id.eq(cap_id))
         .first::<models::UpgradeCap>(conn)
@@ -187,7 +195,7 @@ async fn fetch_cap_details(
         format!("{}m ago", diff.num_minutes())
     };
 
-    Ok(UpgradeCap {
+    Ok(Cap {
         id: cap.object_id,
         package,
         version: version_str,
@@ -197,6 +205,28 @@ async fn fetch_cap_details(
         tx_digest_url: sui_tx_url(&cap.created_tx_digest),
         time_ago,
     })
+}
+
+async fn fetch_cap_versions_history(
+    conn: &mut AsyncPgConnection,
+    cap_id: &str,
+) -> QueryResult<Vec<models::UpgradeCapVersion>> {
+    upgrade_cap_versions_dsl::upgrade_cap_versions
+        .filter(upgrade_cap_versions_dsl::object_id.eq(cap_id))
+        .order(upgrade_cap_versions_dsl::seq_checkpoint.desc())
+        .load::<models::UpgradeCapVersion>(conn)
+        .await
+}
+
+async fn fetch_cap_transfers_history(
+    conn: &mut AsyncPgConnection,
+    cap_id: &str,
+) -> QueryResult<Vec<models::UpgradeCapTransfer>> {
+    upgrade_cap_transfers_dsl::upgrade_cap_transfers
+        .filter(upgrade_cap_transfers_dsl::object_id.eq(cap_id))
+        .order(upgrade_cap_transfers_dsl::seq_checkpoint.desc())
+        .load::<models::UpgradeCapTransfer>(conn)
+        .await
 }
 
 fn short_sui_object_id(id: &str) -> String {
