@@ -1,3 +1,4 @@
+use std::fmt;
 use std::io::Write;
 
 use crate::schema::*;
@@ -17,6 +18,17 @@ pub enum UpgradeCompatibilityPolicyEnum {
     Additive,
     DepOnly,
     Immutable,
+}
+
+impl fmt::Display for UpgradeCompatibilityPolicyEnum {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            UpgradeCompatibilityPolicyEnum::Compatible => write!(f, "Compatible"),
+            UpgradeCompatibilityPolicyEnum::Additive => write!(f, "Additive"),
+            UpgradeCompatibilityPolicyEnum::DepOnly => write!(f, "DepOnly"),
+            UpgradeCompatibilityPolicyEnum::Immutable => write!(f, "Immutable"),
+        }
+    }
 }
 
 impl ToSql<UpgradeCompatibilityPolicy, Pg> for UpgradeCompatibilityPolicyEnum {

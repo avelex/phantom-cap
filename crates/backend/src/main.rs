@@ -1,6 +1,9 @@
+use std::str::FromStr;
+
 use actix_web::web::Html;
 use actix_web::{App, HttpServer, Responder, error, get, web};
 use askama::Template;
+use chrono::DateTime;
 use diesel::OptionalExtension;
 use diesel::{ExpressionMethods, QueryDsl, QueryResult};
 use diesel_async::{
@@ -22,6 +25,8 @@ use crate::schema::upgrade_caps::dsl as upgrade_caps_dsl;
 mod models;
 mod schema;
 
+const SUI_TX_EXPLORER_URL: &str = "https://suivision.xyz/txblock/";
+
 #[derive(Template)]
 #[template(path = "index.html")]
 struct HomePage;
@@ -41,6 +46,7 @@ struct UpgradeCap {
     policy: String,
     owner: String,
     created_by: String,
+    tx_digest_url: String,
     time_ago: String,
 }
 
@@ -138,7 +144,7 @@ async fn fetch_cap_details(
         .map_err(error::ErrorInternalServerError)?;
 
     let (package, version_str) = match latest_version {
-        Some(v) => (v.package_id, v.version.to_string()),
+        Some(v) => (short_sui_object_id(&v.package_id), v.version.to_string()),
         None => ("Unknown".to_string(), "0".to_string()),
     };
 
@@ -151,7 +157,7 @@ async fn fetch_cap_details(
         .map_err(error::ErrorInternalServerError)?;
 
     let owner = match latest_transfer {
-        Some(t) => t.new_owner_address,
+        Some(t) => short_sui_object_id(&t.new_owner_address),
         None => "Unknown".to_string(),
     };
 
@@ -164,17 +170,11 @@ async fn fetch_cap_details(
         .map_err(error::ErrorInternalServerError)?;
 
     let created_by = match first_transfer {
-        Some(t) => t.new_owner_address,
+        Some(t) => short_sui_object_id(&t.new_owner_address),
         None => "Unknown".to_string(),
     };
 
-    let policy_str = match cap.policy {
-        models::UpgradeCompatibilityPolicyEnum::Compatible => "Compatible",
-        models::UpgradeCompatibilityPolicyEnum::Additive => "Additive",
-        models::UpgradeCompatibilityPolicyEnum::DepOnly => "DepOnly",
-        models::UpgradeCompatibilityPolicyEnum::Immutable => "Immutable",
-    }
-    .to_string();
+    let policy_str = cap.policy.to_string();
 
     let now = chrono::Utc::now();
     let diff = now.signed_duration_since(cap.created_at);
@@ -194,8 +194,21 @@ async fn fetch_cap_details(
         policy: policy_str,
         owner,
         created_by,
+        tx_digest_url: sui_tx_url(&cap.created_tx_digest),
         time_ago,
     })
+}
+
+fn short_sui_object_id(id: &str) -> String {
+    if id.len() > 14 {
+        format!("{}...{}", &id[..8], &id[id.len() - 6..])
+    } else {
+        id.to_string()
+    }
+}
+
+fn sui_tx_url(tx_digest: &str) -> String {
+    format!("{}{}", SUI_TX_EXPLORER_URL, tx_digest)
 }
 
 type DbPool = Pool<AsyncPgConnection>;
@@ -230,12 +243,14 @@ async fn load_mock_data(pool: &DbPool) -> Result<()> {
         .await
         .expect("couldn't get db connection from pool");
 
+    let date = DateTime::parse_from_rfc3339("2025-11-18T00:54:41+00:00").unwrap();
+
     let cap = models::UpgradeCap {
-        object_id: "0xA".to_string(),
+        object_id: "0x6906173d537f5a1ac4556bd2653129cff278b9e1567fefe2a97fe754d3162ffb".to_string(),
         policy: models::UpgradeCompatibilityPolicyEnum::Compatible,
-        created_at: chrono::Utc::now(),
-        created_seq_checkpoint: 1,
-        created_tx_digest: "tx_digest_1".to_string(),
+        created_at: date.to_utc(),
+        created_seq_checkpoint: 213327389,
+        created_tx_digest: "8fzRTEaUQNHQmpYXdRcbX1qsn9gvNk6pABPu86koLmfy".to_string(),
     };
 
     diesel::insert_into(upgrade_caps_dsl::upgrade_caps)
@@ -246,11 +261,12 @@ async fn load_mock_data(pool: &DbPool) -> Result<()> {
 
     let version = models::UpgradeCapVersion {
         object_id: cap.object_id.clone(),
-        package_id: "0xP".to_string(),
+        package_id: "0x8b4a56d1811aeaeecfda30975d286200e5f27d11622246b3acf6115399b51592"
+            .to_string(),
         version: 1,
-        seq_checkpoint: 2,
-        tx_digest: "tx_digest_2".to_string(),
-        timestamp: chrono::Utc::now(),
+        seq_checkpoint: 213327389,
+        tx_digest: "8fzRTEaUQNHQmpYXdRcbX1qsn9gvNk6pABPu86koLmfy".to_string(),
+        timestamp: date.to_utc(),
     };
 
     diesel::insert_into(upgrade_cap_versions_dsl::upgrade_cap_versions)
@@ -262,10 +278,11 @@ async fn load_mock_data(pool: &DbPool) -> Result<()> {
     let transfer = models::UpgradeCapTransfer {
         object_id: cap.object_id.clone(),
         old_owner_address: SuiAddress::ZERO.to_string(),
-        new_owner_address: "0xNEW".to_string(),
-        seq_checkpoint: 3,
-        tx_digest: "tx_digest_3".to_string(),
-        timestamp: chrono::Utc::now(),
+        new_owner_address: "0x066ceb4e01d5dbfda6f6737dd484a9085851624604cae86ac4c4712af7627d24"
+            .to_string(),
+        seq_checkpoint: 213327389,
+        tx_digest: "8fzRTEaUQNHQmpYXdRcbX1qsn9gvNk6pABPu86koLmfy".to_string(),
+        timestamp: date.to_utc(),
     };
 
     diesel::insert_into(upgrade_cap_transfers_dsl::upgrade_cap_transfers)
