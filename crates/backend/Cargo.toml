@@ -1,0 +1,22 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-web = "4.12.1"
+askama = "0.15.0"
+r2d2 = "0.8.10"
+r2d2_postgres = "0.18.2"
+serde = { version = "1", features = ["derive"] }
+
+# Diesel PostgreSQL
+diesel = { version = "2.2", features = ["postgres", "r2d2", "chrono"] }
+diesel-async = { version = "0.5", features = ["bb8", "r2d2", "postgres", "async-connection-wrapper"] }
+diesel_migrations = "2.2"
+chrono = "0.4.42"
+futures-util = { version = "0.3", features = ["std"] }
+anyhow = "1.0.100"
+
+
+sui-types = { git = "https://github.com/MystenLabs/sui.git", branch = "mainnet" }

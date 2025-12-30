@@ -12,6 +12,9 @@ use clap::Parser;
 use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 use sui_indexer_alt_framework::{
     cluster::{Args, IndexerCluster},
+    ingestion::{
+        ClientArgs, ingestion_client::IngestionClientArgs, streaming_client::StreamingClientArgs,
+    },
     pipeline::sequential::SequentialConfig,
 };
 use tokio;
@@ -30,12 +33,27 @@ async fn main() -> Result<()> {
 
     let args = Args::try_parse().expect("Failed to parse arguments");
 
+    let remote_store_url = std::env::var("REMOTE_STORE_URL")
+        .expect("REMOTE_STORE_URL must be set")
+        .parse::<Url>()
+        .expect("Invalid remote store URL");
+
+    let mut ingestion_client_args = IngestionClientArgs::default();
+    ingestion_client_args.remote_store_url = Some(remote_store_url.clone());
+
+    let client_args = ClientArgs {
+        ingestion: ingestion_client_args,
+        streaming: StreamingClientArgs::default(),
+    };
+
     let mut cluster = IndexerCluster::builder()
         .with_args(args)
         .with_database_url(database_url)
         .with_migrations(&MIGRATIONS)
+        .with_client_args(client_args)
         .build()
-        .await?;
+        .await
+        .expect("Failed to build indexer cluster");
 
     cluster
         .sequential_pipeline(CreatedHandler, SequentialConfig::default())

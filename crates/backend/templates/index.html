@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phantom Cap</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Htmx CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js" integrity="sha384-/TgkGk7p307TH7EXJDuUlgG3Ce1UVolAOFopFekQkkXihi5u/6OCvVKyz1W+idaz" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="h-screen w-full border-2 border-black flex flex-col">
+        <!-- Header -->
+        <header class="border-b-2 border-black px-4 py-3">
+            <a href="#" class="text-2xl font-semibold">Phantom Cap</a>
+        </header>
+
+        <!-- Main Content (HomePage) -->
+        <main class="flex-1 flex flex-col items-center justify-center px-4">
+            <h2 class="text-2xl font-medium mb-6">Caps are now revealed!</h2>
+            <form 
+                class="w-full max-w-md"
+                hx-get="/cap/search"
+                hx-target="#search-results"
+                hx-swap="innerHTML"
+            >
+                <input
+                    type="text"
+                    name="id"
+                    placeholder="Search by Upgrade Cap"
+                    class="w-full border-2 border-black rounded-full px-6 py-3 text-lg text-center focus:outline-none focus:ring-1 focus:ring-black"
+                />
+            </form>
+            <div id="search-results" class="w-full max-w-md mt-6"></div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Upgrade Cap {{ id }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'hard': '4px 4px 0px 0px rgba(0,0,0,1)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Overview Card -->
+        <div class="bg-white border-[3px] border-black rounded-[2.5rem] p-10 shadow-hard flex flex-col transition-transform hover:-translate-y-1">
+            <h2 class="text-3xl font-bold mb-6">Overview</h2>
+            <div class="flex flex-col gap-3 text-xl">
+                <div class="flex gap-2">
+                    <span class="font-semibold">Package:</span>
+                    <span>{{ package }}</span>
+                </div>
+                <div class="flex gap-2">
+                    <span class="font-semibold">Version:</span>
+                    <span>{{ version }}</span>
+                </div>
+                <div class="flex gap-2">
+                    <span class="font-semibold">Policy:</span>
+                    <span>{{ policy }}</span>
+                </div>
+                <div class="flex gap-2">
+                    <span class="font-semibold">Owner:</span>
+                    <span class="break-all">{{ owner }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- More Info Card -->
+        <div class="bg-white border-[3px] border-black rounded-[2.5rem] p-10 shadow-hard flex flex-col transition-transform hover:-translate-y-1">
+            <h2 class="text-3xl font-bold mb-6">More Info</h2>
+            <div class="flex flex-col gap-1 text-xl">
+                <span class="font-semibold">Created By</span>
+                <div class="flex gap-2 items-center">
+                    <span class="break-all">{{ created_by }}</span>
+                    <span>|</span>
+                    <span>{{ time_ago }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
