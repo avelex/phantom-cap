@@ -5,18 +5,29 @@
     <h1 class="text-4xl md:text-5xl font-bold mb-10">Caps are now revealed!</h1>
     
     <form 
-        class="w-full"
+        class="w-full relative"
         hx-get="/cap/search"
         hx-target="#search-results"
+        hx-trigger="input changed delay:500ms"
         hx-swap="innerHTML"
+        hx-indicator="#search-loading"
     >
-        <input
-            type="text"
-            name="id"
-            placeholder="Search by Upgrade Cap..."
-            class="w-full bg-white border-[3px] border-black rounded-2xl px-6 py-5 text-xl text-center shadow-hard focus:outline-none focus:translate-x-[4px] focus:translate-y-[4px] focus:shadow-none transition-all placeholder:text-gray-400"
-            autocomplete="off"
-        />
+        <div class="relative">
+            <input
+                type="text"
+                name="id"
+                placeholder="Search by Upgrade Cap..."
+                class="w-full bg-white border-[3px] border-black rounded-2xl px-6 py-5 text-xl text-center shadow-hard focus:outline-none focus:translate-x-[4px] focus:translate-y-[4px] focus:shadow-none transition-all placeholder:text-gray-400"
+                autocomplete="off"
+            />
+            <!-- Loading Indicator -->
+            <div id="search-loading" class="htmx-indicator absolute right-6 top-1/2 -translate-y-1/2 z-10">
+                <svg class="animate-spin h-8 w-8 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+        </div>
     </form>
     <div id="search-results" class="w-full mt-10"></div>
 </div>
