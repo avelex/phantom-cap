@@ -10,16 +10,30 @@
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js" integrity="sha384-/TgkGk7p307TH7EXJDuUlgG3Ce1UVolAOFopFekQkkXihi5u/6OCvVKyz1W+idaz" crossorigin="anonymous"></script>
     <!-- Alpine JS -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
                         sans: ['Outfit', 'sans-serif'],
+                        heading: ['Space Grotesk', 'sans-serif'],
                     },
-                    boxShadow: {
-                        'hard': '4px 4px 0px 0px rgba(0,0,0,1)',
+                    colors: {
+                        background: '#0A0E1A',
+                        foreground: '#FFFFFF',
+                        card: '#151B2E',
+                        'card-foreground': '#FFFFFF',
+                        primary: '#1E90FF',
+                        'primary-foreground': '#FFFFFF',
+                        muted: '#1F2937',
+                        'muted-foreground': '#9CA3AF',
+                        border: '#1F2937',
+                        input: '#1F2937',
                     }
                 }
             }
@@ -27,6 +41,8 @@
     </script>
     <style>
         body { font-family: 'Outfit', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Space Grotesk', sans-serif; }
+        
         .htmx-indicator {
             display: none;
         }
@@ -37,16 +53,40 @@
     </style>
     {% block head %}{% endblock %}
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col text-black">
+<body class="bg-background text-foreground min-h-screen flex flex-col antialiased">
     <!-- Header -->
-    <header class="bg-white border-b-[3px] border-black px-8 py-5 flex items-center sticky top-0 z-50">
-        <a href="/" class="text-3xl font-bold tracking-tight hover:opacity-75 transition-opacity">Phantom Cap</a>
-        {% block header %} {% endblock %}
+    <header class="border-b border-border bg-background/95 backdrop-blur z-50 sticky top-0">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <a href="/" class="text-2xl font-bold tracking-tight font-heading hover:opacity-80 transition-opacity">Phantom Cap</a>
+                </div>
+                {% block header %}{% endblock %}
+                <nav class="flex gap-6 items-center">
+                    <a href="/" class="text-muted-foreground hover:text-primary transition-colors">
+                        Explorer
+                    </a>
+                    <a href="#" class="text-muted-foreground hover:text-primary transition-colors">
+                        Caps
+                    </a>
+                    <a href="#" class="text-muted-foreground hover:text-primary transition-colors">
+                        Stats
+                    </a>
+                </nav>
+            </div>
+        </div>
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow flex flex-col items-center justify-center p-6">
+    <main class="flex-grow flex flex-col">
         {% block content %}{% endblock %}
     </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-border mt-auto py-8 bg-background">
+        <div class="container mx-auto px-6 text-center text-muted-foreground">
+            <p>Phantom Cap</p>
+        </div>
+    </footer>
 </body>
 </html>

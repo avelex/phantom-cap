@@ -43,12 +43,15 @@ struct Cap {
     short_id: String,
     id_url: String,
     package: String,
+    package_full: String,
     package_url: String,
     version: String,
     policy: String,
     owner: String,
+    owner_full: String,
     owner_url: String,
     created_by: String,
+    created_by_full: String,
     created_by_url: String,
     tx_digest_url: String,
     time_ago: String,
@@ -69,8 +72,10 @@ struct CapTransfersTemplate {
 pub struct CapVersion {
     pub version: i64,
     pub package_id: String,
+    pub package_id_full: String,
     pub package_url: String,
     pub tx_digest: String,
+    pub tx_digest_full: String,
     pub tx_url: String,
     pub seq_checkpoint: i64,
     pub seq_checkpoint_url: String,
@@ -79,13 +84,16 @@ pub struct CapVersion {
 
 pub struct CapTransfer {
     pub tx_digest: String,
+    pub tx_digest_full: String,
     pub tx_url: String,
     pub seq_checkpoint: i64,
     pub seq_checkpoint_url: String,
     pub time_ago: String,
     pub from: String,
+    pub from_full: String,
     pub from_url: String,
     pub to: String,
+    pub to_full: String,
     pub to_url: String,
 }
 
@@ -157,13 +165,16 @@ async fn show_cap_transfers(
             let time_ago = format_time_ago(&t.timestamp, &now);
             CapTransfer {
                 tx_digest: short_sui_object_id(&t.tx_digest),
+                tx_digest_full: t.tx_digest.clone(),
                 tx_url: sui_tx_url(&t.tx_digest),
                 seq_checkpoint: t.seq_checkpoint,
                 seq_checkpoint_url: sui_checkpoint_url(&t.seq_checkpoint),
                 time_ago,
                 from: short_sui_object_id(&t.old_owner_address),
+                from_full: t.old_owner_address.clone(),
                 from_url: sui_address_url(&t.old_owner_address),
                 to: short_sui_object_id(&t.new_owner_address),
+                to_full: t.new_owner_address.clone(),
                 to_url: sui_address_url(&t.new_owner_address),
             }
         })
@@ -196,8 +207,10 @@ async fn show_cap_versions(
             CapVersion {
                 version: v.version,
                 package_id: short_sui_object_id(&v.package_id),
+                package_id_full: v.package_id.clone(),
                 package_url: sui_package_url(&v.package_id),
                 tx_digest: short_sui_object_id(&v.tx_digest),
+                tx_digest_full: v.tx_digest.clone(),
                 tx_url: sui_tx_url(&v.tx_digest),
                 seq_checkpoint: v.seq_checkpoint,
                 seq_checkpoint_url: sui_checkpoint_url(&v.seq_checkpoint),
@@ -260,7 +273,7 @@ async fn fetch_cap_details(
         .map_err(error::ErrorInternalServerError)?;
 
     let created_by = match &first_transfer {
-        Some(t) => short_sui_object_id(&t.new_owner_address),
+        Some(t) => t.new_owner_address.clone(),
         None => "Unknown".to_string(),
     };
 
@@ -278,12 +291,15 @@ async fn fetch_cap_details(
         id_url: sui_object_url(&cap.object_id),
         short_id: short_sui_object_id(&cap.object_id),
         package: short_sui_object_id(&package_id),
+        package_full: package_id.clone(),
         package_url: sui_package_url(&package_id),
         version: version_str,
         policy: policy_str,
         owner: short_sui_object_id(&owner_address),
+        owner_full: owner_address.clone(),
         owner_url: sui_address_url(&owner_address),
-        created_by,
+        created_by: short_sui_object_id(&created_by),
+        created_by_full: created_by.clone(),
         created_by_url,
         tx_digest_url: sui_tx_url(&cap.created_tx_digest),
         time_ago,

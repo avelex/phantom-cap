@@ -2,103 +2,122 @@
 
 {% block title %}UpgradeCap: {{ short_id }}{% endblock %}
 
-{% block header %}
-<div class="flex items-center text-3xl font-bold tracking-tight gap-2">
-    <span></span>
-    <span>::</span>
-    <a href="{{ id_url }}" class="hover:opacity-75 transition-opacity">{{ short_id }}</a>
-    <svg width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="ml-1 hidden h-6 w-6 shrink-0 cursor-pointer dark:flex"><g id="elements"><path id="Rectangle 1703" d="M6.00391 10.0005C6.00391 8.11487 6.00391 7.17206 6.58969 6.58627C7.17548 6.00049 8.11829 6.00049 10.0039 6.00049L10.6706 6.00049C12.5562 6.00049 13.499 6.00049 14.0848 6.58628C14.6706 7.17206 14.6706 8.11487 14.6706 10.0005V10.6672C14.6706 12.5528 14.6706 13.4956 14.0848 14.0814C13.499 14.6672 12.5562 14.6672 10.6706 14.6672H10.0039C8.11829 14.6672 7.17548 14.6672 6.58969 14.0814C6.00391 13.4956 6.00391 12.5528 6.00391 10.6672L6.00391 10.0005Z" stroke="black" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path><path id="Rectangle 1704" d="M11.3359 6.00065C11.3343 4.02926 11.3044 3.00812 10.7306 2.30894C10.6198 2.17391 10.496 2.0501 10.361 1.93929C9.62342 1.33398 8.52759 1.33398 6.33594 1.33398C4.14428 1.33398 3.04846 1.33398 2.31089 1.93929C2.17586 2.0501 2.05205 2.17391 1.94124 2.30894C1.33594 3.0465 1.33594 4.14233 1.33594 6.33398C1.33594 8.52564 1.33594 9.62146 1.94124 10.359C2.05205 10.4941 2.17586 10.6179 2.31089 10.7287C3.01008 11.3025 4.03121 11.3323 6.0026 11.3339" stroke="black" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path></g></svg>
-</div>
-{% endblock %}
-
 {% block content %}
-<div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-8">
-    <!-- Overview Card -->
-    <div class="bg-white border-[3px] border-black rounded-[2.5rem] p-10 shadow-hard flex flex-col transition-transform">
-        <h2 class="text-3xl font-bold mb-6">Overview</h2>
-        <div class="flex flex-col gap-3 text-xl">
-            <div class="flex gap-2">
-                <span class="font-semibold">Package:</span>
-                <a href="{{ package_url }}" class="text-blue-600">{{ package }}</a>
-            </div>
-            <div class="flex gap-2">
-                <span class="font-semibold">Owner:</span>
-                <a href="{{ owner_url }}" class="text-blue-600">{{ owner }}</a>
-            </div>
-            <div class="flex gap-2">
-                <span class="font-semibold">Version:</span>
-                <span>{{ version }}</span>
-            </div>
-            <div class="flex gap-2">
-                <span class="font-semibold">Policy:</span>
-                <span>{{ policy }}</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- More Info Card -->
-    <div class="bg-white border-[3px] border-black rounded-[2.5rem] p-10 shadow-hard flex flex-col transition-transform">
-        <h2 class="text-3xl font-bold mb-6">More Info</h2>
-        <div class="flex flex-col gap-1 text-xl">
-            <span class="font-semibold">Created By</span>
-            <div class="flex gap-2 items-center">
-                <a href="{{ created_by_url }}" class="text-blue-600">{{ created_by }}</a>
-                <span>|</span>
-                <a href="{{ tx_digest_url }}" class="text-blue-600">{{ time_ago }}</a>
-            </div>
-        </div>
-    </div>
-    <!-- Tabs & Table Section -->
-    <div x-data="{ tab: 'upgrades' }" class="col-span-1 md:col-span-2 flex flex-col gap-6">
-        <!-- Tab Buttons -->
-        <div class="flex gap-4">
-            <button 
-                @click="tab = 'upgrades'"
-                :class="tab === 'upgrades' ? 'bg-[#5D5FEF] text-white' : 'bg-white text-black'"
-                class="px-8 py-3 rounded-xl border-[3px] border-black font-bold text-xl shadow-hard transition-all active:translate-y-1"
-                hx-get="/cap/{{ id }}/versions"
-                hx-trigger="load, click"
-                hx-target="#table-body">
-                Upgrades
-            </button>
-            <button 
-                @click="tab = 'transfers'"
-                :class="tab === 'transfers' ? 'bg-[#5D5FEF] text-white' : 'bg-white text-black'"
-                class="px-8 py-3 rounded-xl border-[3px] border-black font-bold text-xl shadow-hard transition-all active:translate-y-1"
-                hx-get="/cap/{{ id }}/transfers"
-                hx-target="#table-body">
-                Transfers
+<div class="container mx-auto px-6 py-8">
+    <div class="space-y-8">
+        <div class="flex items-center gap-4">
+             <h1 class="text-3xl font-bold font-heading">{{ short_id }}</h1>
+             <button class="text-muted-foreground hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('{{ id }}')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
             </button>
         </div>
 
-        <!-- content Card -->
-        <div class="bg-white border-[3px] border-black rounded-[2.5rem] p-8 shadow-hard min-h-[300px]">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xl border-separate border-spacing-y-4">
-                    <!-- Upgrades Header -->
-                    <thead x-show="tab === 'upgrades'">
-                        <tr class="text-black font-bold">
-                            <th class="pb-2">Version</th>
-                            <th class="pb-2">Package ID</th>
-                            <th class="pb-2">Tx Digest</th>
-                            <th class="pb-2">Checkpoint</th>
-                            <th class="pb-2">Age</th>
-                        </tr>
-                    </thead>
-                    <!-- Transfers Header -->
-                    <thead x-show="tab === 'transfers'" style="display: none;">
-                        <tr class="text-black font-bold">
-                            <th class="pb-2">Tx Digest</th>
-                            <th class="pb-2">Checkpoint</th>
-                            <th class="pb-2">Age</th>
-                            <th class="pb-2">From</th>
-                            <th class="pb-2">To</th>
-                        </tr>
-                    </thead>
-                    
-                    <!-- Table Body (Target for HTMX) -->
-                    <tbody id="table-body" class="text-lg space-y-4"></tbody>
-                </table>
+        <!-- Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Overview Card -->
+            <div class="bg-card border border-border rounded-xl p-8">
+                <h2 class="text-xl font-bold font-heading mb-8">Overview</h2>
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center bg-card/50">
+                        <span class="text-muted-foreground font-medium">Package:</span>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ package_url }}" class="text-primary hover:text-primary/80 transition-colors font-mono text-sm truncate max-w-[200px]">{{ package }}</a>
+                            <button class="text-muted-foreground hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('{{ package_full }}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-muted-foreground font-medium">Owner:</span>
+                        <div class="flex items-center gap-2">
+                             <a href="{{ owner_url }}" class="text-primary hover:text-primary/80 transition-colors font-mono text-sm truncate max-w-[200px]">{{ owner }}</a>
+                             <button class="text-muted-foreground hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('{{ owner_full }}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                             </button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                         <span class="text-muted-foreground font-medium">Version:</span>
+                        <span class="font-mono">{{ version }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                         <span class="text-muted-foreground font-medium">Policy:</span>
+                        <span class="font-medium">{{ policy }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- More Info Card -->
+            <div class="bg-card border border-border rounded-xl p-8 flex justify-between">
+                <div>
+                     <h2 class="text-xl font-bold font-heading mb-8">More Info</h2>
+                     <div class="space-y-2">
+                         <span class="text-muted-foreground font-medium block">Created By</span>
+                         <div class="flex items-center gap-2 text-sm">
+                             <a href="{{ created_by_url }}" class="text-primary hover:text-primary/80 transition-colors font-mono">{{ created_by }}</a>
+                             <button class="text-muted-foreground hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('{{ created_by_full }}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                             </button>
+                             <span class="text-muted-foreground">|</span>
+                             <a href="{{ tx_digest_url }}" class="text-primary hover:text-primary/80 transition-colors font-mono">{{ time_ago }}</a>
+                         </div>
+                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs & Table Section -->
+        <div x-data="{ tab: 'upgrades' }" class="space-y-6">
+            <!-- Tab Buttons -->
+            <div class="bg-card border border-border p-1 rounded-lg inline-flex">
+                <button 
+                    @click="tab = 'upgrades'"
+                    :class="tab === 'upgrades' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'"
+                    class="px-6 py-2 rounded-md font-medium text-sm transition-all"
+                    hx-get="/cap/{{ id }}/versions"
+                    hx-trigger="load, click"
+                    hx-target="#table-body">
+                    Upgrades
+                </button>
+                <button 
+                    @click="tab = 'transfers'"
+                    :class="tab === 'transfers' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'"
+                    class="px-6 py-2 rounded-md font-medium text-sm transition-all"
+                    hx-get="/cap/{{ id }}/transfers"
+                    hx-target="#table-body">
+                    Transfers
+                </button>
+            </div>
+
+            <!-- Table Card -->
+             <div class="bg-card border border-border rounded-xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <!-- Upgrades Header -->
+                        <thead x-show="tab === 'upgrades'" class="bg-muted/30 text-white font-medium border-b border-border">
+                            <tr>
+                                <th class="py-4 px-6">Version</th>
+                                <th class="py-4 px-6">Package ID</th>
+                                <th class="py-4 px-6">Tx Digest</th>
+                                <th class="py-4 px-6">Checkpoint</th>
+                                <th class="py-4 px-6">Age</th>
+                            </tr>
+                        </thead>
+                        <!-- Transfers Header -->
+                        <thead x-show="tab === 'transfers'" class="bg-muted/30 text-white font-medium border-b border-border" style="display: none;">
+                            <tr>
+                                <th class="py-4 px-6">Tx Digest</th>
+                                <th class="py-4 px-6">Checkpoint</th>
+                                <th class="py-4 px-6">Age</th>
+                                <th class="py-4 px-6">From</th>
+                                <th class="py-4 px-6">To</th>
+                            </tr>
+                        </thead>
+                        
+                        <!-- Table Body (Target for HTMX) -->
+                        <tbody id="table-body" class="divide-y divide-border"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

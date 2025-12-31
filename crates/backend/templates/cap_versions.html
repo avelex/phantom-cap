@@ -1,15 +1,25 @@
 {% for version in versions %}
-<tr class="bg-white hover:bg-gray-50 transition-colors">
-    <td class="py-4 px-6 border-b border-r border-l border-black first:rounded-l-xl last:rounded-r-xl first:border-l-[3px] last:border-r-[3px] border-b-[3px]">{{ version.version }}</td>
-    <td class="py-4 px-6 border-b border-r border-black border-b-[3px]">
-        <a href="{{ version.package_url }}" target="_blank" class="text-blue-600">{{ version.package_id }}</a>
+<tr class="hover:bg-muted/30 transition-colors group">
+    <td class="py-4 px-6 text-foreground font-mono">{{ version.version }}</td>
+    <td class="py-4 px-6">
+        <div class="flex items-center gap-2">
+             <a href="{{ version.package_url }}" target="_blank" class="text-primary hover:underline font-mono">{{ version.package_id }}</a>
+             <button class="text-muted-foreground hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('{{ version.package_id_full }}')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            </button>
+        </div>
     </td>
-    <td class="py-4 px-6 border-b border-r border-black border-b-[3px]">
-        <a href="{{ version.tx_url }}" target="_blank" class="text-blue-600">{{ version.tx_digest }}</a>
+    <td class="py-4 px-6">
+        <div class="flex items-center gap-2">
+            <a href="{{ version.tx_url }}" target="_blank" class="text-primary hover:underline font-mono">{{ version.tx_digest }}</a>
+            <button class="text-muted-foreground hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('{{ version.tx_digest_full }}')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            </button>
+        </div>
     </td>
-    <td class="py-4 px-6 border-b border-r border-black border-b-[3px]">
-        <a href="{{ version.seq_checkpoint_url }}" target="_blank" class="text-blue-600">{{ version.seq_checkpoint }}</a>
+    <td class="py-4 px-6">
+        <a href="{{ version.seq_checkpoint_url }}" target="_blank" class="text-primary hover:underline font-mono">{{ version.seq_checkpoint }}</a>
     </td>
-    <td class="py-4 px-6 border-b border-r border-black last:border-r-[3px] border-b-[3px]">{{ version.time_ago }}</td>
+    <td class="py-4 px-6 text-muted-foreground">{{ version.time_ago }}</td>
 </tr>
 {% endfor %}

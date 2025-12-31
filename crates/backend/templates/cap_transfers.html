@@ -1,21 +1,36 @@
 {% for transfer in transfers %}
-<tr class="bg-white hover:bg-gray-50 transition-colors">
-    <td class="py-4 px-6 border-b border-r border-l border-black first:rounded-l-xl last:rounded-r-xl first:border-l-[3px] last:border-r-[3px] border-b-[3px]">
-        <a href="{{ transfer.tx_url }}" target="_blank" class="text-blue-600">{{ transfer.tx_digest }}</a>
+<tr class="hover:bg-muted/30 transition-colors group">
+    <td class="py-4 px-6">
+        <div class="flex items-center gap-2">
+            <a href="{{ transfer.tx_url }}" target="_blank" class="text-primary hover:underline font-mono">{{ transfer.tx_digest }}</a>
+            <button class="text-muted-foreground hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('{{ transfer.tx_digest_full }}')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            </button>
+        </div>
     </td>
-    <td class="py-4 px-6 border-b border-r border-black border-b-[3px]">
-        <a href="{{ transfer.seq_checkpoint_url }}" target="_blank" class="text-blue-600">{{ transfer.seq_checkpoint }}</a>
+    <td class="py-4 px-6">
+        <a href="{{ transfer.seq_checkpoint_url }}" target="_blank" class="text-primary hover:underline font-mono">{{ transfer.seq_checkpoint }}</a>
     </td>
-    <td class="py-4 px-6 border-b border-r border-black border-b-[3px]">{{ transfer.time_ago }}</td>
+    <td class="py-4 px-6 text-muted-foreground">{{ transfer.time_ago }}</td>
     {% if transfer.from != "0x000000...000000" %}
-    <td class="py-4 px-6 border-b border-r border-black border-b-[3px]">
-        <a href="{{ transfer.from_url }}" target="_blank" class="text-blue-600">{{ transfer.from }}</a>
+    <td class="py-4 px-6">
+        <div class="flex items-center gap-2">
+            <a href="{{ transfer.from_url }}" target="_blank" class="text-primary hover:underline font-mono">{{ transfer.from }}</a>
+            <button class="text-muted-foreground hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('{{ transfer.from_full }}')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            </button>
+        </div>
     </td>
     {% else %}
-    <td class="py-4 px-6 border-b border-r border-black border-b-[3px]">Creation</td>
+    <td class="py-4 px-6 text-foreground font-medium">Creation</td>
     {% endif %}
-    <td class="py-4 px-6 border-b border-r border-black last:border-r-[3px] border-b-[3px]">
-        <a href="{{ transfer.to_url }}" target="_blank" class="text-blue-600">{{ transfer.to }}</a>
+    <td class="py-4 px-6">
+        <div class="flex items-center gap-2">
+            <a href="{{ transfer.to_url }}" target="_blank" class="text-primary hover:underline font-mono">{{ transfer.to }}</a>
+            <button class="text-muted-foreground hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('{{ transfer.to_full }}')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            </button>
+        </div>
     </td>
 </tr>
 {% endfor %}
