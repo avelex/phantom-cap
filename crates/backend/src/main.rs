@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use actix_web::web::Html;
 use actix_web::{App, HttpServer, Responder, error, get, web};
 use askama::Template;
@@ -8,10 +6,7 @@ use diesel::OptionalExtension;
 use diesel::{ExpressionMethods, QueryDsl, QueryResult};
 use diesel_async::{
     AsyncPgConnection, RunQueryDsl,
-    pooled_connection::{
-        AsyncDieselConnectionManager,
-        bb8::{Pool, PooledConnection},
-    },
+    pooled_connection::{AsyncDieselConnectionManager, bb8::Pool},
 };
 use serde::Deserialize;
 

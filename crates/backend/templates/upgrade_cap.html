@@ -3,11 +3,11 @@
 {% block title %}UpgradeCap: {{ short_id }}{% endblock %}
 
 {% block header %}
-<div class="flex items-center text-3xl font-bold tracking-tight gap-4">
+<div class="flex items-center text-3xl font-bold tracking-tight gap-2">
     <span></span>
     <span>::</span>
     <a href="{{ id_url }}" class="hover:opacity-75 transition-opacity">{{ short_id }}</a>
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="ml-1 hidden h-4 w-4 shrink-0 cursor-pointer dark:flex"><g id="elements"><path id="Rectangle 1703" d="M6.00391 10.0005C6.00391 8.11487 6.00391 7.17206 6.58969 6.58627C7.17548 6.00049 8.11829 6.00049 10.0039 6.00049L10.6706 6.00049C12.5562 6.00049 13.499 6.00049 14.0848 6.58628C14.6706 7.17206 14.6706 8.11487 14.6706 10.0005V10.6672C14.6706 12.5528 14.6706 13.4956 14.0848 14.0814C13.499 14.6672 12.5562 14.6672 10.6706 14.6672H10.0039C8.11829 14.6672 7.17548 14.6672 6.58969 14.0814C6.00391 13.4956 6.00391 12.5528 6.00391 10.6672L6.00391 10.0005Z" stroke="black" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path><path id="Rectangle 1704" d="M11.3359 6.00065C11.3343 4.02926 11.3044 3.00812 10.7306 2.30894C10.6198 2.17391 10.496 2.0501 10.361 1.93929C9.62342 1.33398 8.52759 1.33398 6.33594 1.33398C4.14428 1.33398 3.04846 1.33398 2.31089 1.93929C2.17586 2.0501 2.05205 2.17391 1.94124 2.30894C1.33594 3.0465 1.33594 4.14233 1.33594 6.33398C1.33594 8.52564 1.33594 9.62146 1.94124 10.359C2.05205 10.4941 2.17586 10.6179 2.31089 10.7287C3.01008 11.3025 4.03121 11.3323 6.0026 11.3339" stroke="black" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path></g></svg>
+    <svg width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="ml-1 hidden h-6 w-6 shrink-0 cursor-pointer dark:flex"><g id="elements"><path id="Rectangle 1703" d="M6.00391 10.0005C6.00391 8.11487 6.00391 7.17206 6.58969 6.58627C7.17548 6.00049 8.11829 6.00049 10.0039 6.00049L10.6706 6.00049C12.5562 6.00049 13.499 6.00049 14.0848 6.58628C14.6706 7.17206 14.6706 8.11487 14.6706 10.0005V10.6672C14.6706 12.5528 14.6706 13.4956 14.0848 14.0814C13.499 14.6672 12.5562 14.6672 10.6706 14.6672H10.0039C8.11829 14.6672 7.17548 14.6672 6.58969 14.0814C6.00391 13.4956 6.00391 12.5528 6.00391 10.6672L6.00391 10.0005Z" stroke="black" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path><path id="Rectangle 1704" d="M11.3359 6.00065C11.3343 4.02926 11.3044 3.00812 10.7306 2.30894C10.6198 2.17391 10.496 2.0501 10.361 1.93929C9.62342 1.33398 8.52759 1.33398 6.33594 1.33398C4.14428 1.33398 3.04846 1.33398 2.31089 1.93929C2.17586 2.0501 2.05205 2.17391 1.94124 2.30894C1.33594 3.0465 1.33594 4.14233 1.33594 6.33398C1.33594 8.52564 1.33594 9.62146 1.94124 10.359C2.05205 10.4941 2.17586 10.6179 2.31089 10.7287C3.01008 11.3025 4.03121 11.3323 6.0026 11.3339" stroke="black" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path></g></svg>
 </div>
 {% endblock %}
 
@@ -97,7 +97,7 @@
                     </thead>
                     
                     <!-- Table Body (Target for HTMX) -->
-                    <tbody id="table-body" class="font-medium text-lg space-y-4"></tbody>
+                    <tbody id="table-body" class="text-lg space-y-4"></tbody>
                 </table>
             </div>
         </div>
