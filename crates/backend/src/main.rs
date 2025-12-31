@@ -28,7 +28,11 @@ const SUI_OBJECT_EXPLORER_URL: &str = "https://suivision.xyz/object/";
 
 #[derive(Template)]
 #[template(path = "index.html")]
-struct HomePage;
+struct HomePage {
+    upgrade_caps_count: i64,
+    packages_count: i64,
+    transfers_count: i64,
+}
 
 #[derive(Template)]
 #[template(path = "search.html")]
@@ -103,8 +107,22 @@ struct SearchQuery {
 }
 
 #[get("/")]
-async fn home() -> impl Responder {
-    Html::new(HomePage.render().unwrap())
+async fn home(pool: web::Data<DbPool>) -> actix_web::Result<Html> {
+    let mut conn = pool.get().await.map_err(error::ErrorInternalServerError)?;
+
+    let upgrade_caps_count = fetch_upgrade_caps_count(&mut conn).await.unwrap_or(0);
+    let packages_count = fetch_packages_count(&mut conn).await.unwrap_or(0);
+    let transfers_count = fetch_transfers_count(&mut conn).await.unwrap_or(0);
+
+    Ok(Html::new(
+        HomePage {
+            upgrade_caps_count,
+            packages_count,
+            transfers_count,
+        }
+        .render()
+        .unwrap(),
+    ))
 }
 
 #[get("/cap/search")]
@@ -328,6 +346,27 @@ async fn fetch_cap_transfers_history(
         .await
 }
 
+async fn fetch_upgrade_caps_count(conn: &mut AsyncPgConnection) -> QueryResult<i64> {
+    upgrade_caps_dsl::upgrade_caps
+        .count()
+        .get_result(conn)
+        .await
+}
+
+async fn fetch_packages_count(conn: &mut AsyncPgConnection) -> QueryResult<i64> {
+    upgrade_cap_versions_dsl::upgrade_cap_versions
+        .count()
+        .get_result(conn)
+        .await
+}
+
+async fn fetch_transfers_count(conn: &mut AsyncPgConnection) -> QueryResult<i64> {
+    upgrade_cap_transfers_dsl::upgrade_cap_transfers
+        .count()
+        .get_result(conn)
+        .await
+}
+
 fn short_sui_object_id(id: &str) -> String {
     if id.len() > 14 {
         format!("{}...{}", &id[..8], &id[id.len() - 6..])
@@ -368,6 +407,18 @@ fn format_time_ago(timestamp: &DateTime<Utc>, current: &DateTime<Utc>) -> String
     time_ago
 }
 
+#[derive(Template)]
+#[template(path = "not_found.html")]
+struct NotFoundTemplate;
+
+async fn not_found() -> actix_web::Result<Html> {
+    Ok(Html::new(
+        NotFoundTemplate
+            .render()
+            .map_err(error::ErrorInternalServerError)?,
+    ))
+}
+
 type DbPool = Pool<AsyncPgConnection>;
 
 #[actix_web::main]
@@ -388,6 +439,7 @@ async fn main() -> std::io::Result<()> {
             .service(show_cap_info)
             .service(show_cap_transfers)
             .service(show_cap_versions)
+            .default_service(web::route().to(not_found))
     })
     .bind(("127.0.0.1", 8080))?
     .run()

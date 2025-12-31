@@ -51,21 +51,8 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-primary"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
                     </div>
                     <div>
-                        <p class="text-sm text-muted-foreground">Total Caps</p>
-                        <p class="text-2xl font-bold font-heading">1,247</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Transactions -->
-            <div class="p-6 border border-border bg-card rounded-lg hover:border-primary/50 transition-colors">
-                <div class="flex items-center gap-4">
-                    <div class="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-primary"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                    </div>
-                    <div>
-                        <p class="text-sm text-muted-foreground">Transactions</p>
-                        <p class="text-2xl font-bold font-heading">5,839</p>
+                        <p class="text-sm text-muted-foreground">Upgrade Caps</p>
+                        <p class="text-2xl font-bold font-heading">{{ upgrade_caps_count }}</p>
                     </div>
                 </div>
             </div>
@@ -77,8 +64,21 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-primary"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22v-9"/></svg>
                     </div>
                     <div>
-                        <p class="text-sm text-muted-foreground">Active Packages</p>
-                        <p class="text-2xl font-bold font-heading">342</p>
+                        <p class="text-sm text-muted-foreground">Packages</p>
+                        <p class="text-2xl font-bold font-heading">{{ packages_count }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions -->
+            <div class="p-6 border border-border bg-card rounded-lg hover:border-primary/50 transition-colors">
+                <div class="flex items-center gap-4">
+                    <div class="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-primary"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-muted-foreground">Transfers</p>
+                        <p class="text-2xl font-bold font-heading">{{ transfers_count }}</p>
                     </div>
                 </div>
             </div>
