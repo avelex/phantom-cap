@@ -1,11 +1,10 @@
+{% import "macros.html" as buttons %}
 {% for transfer in transfers %}
 <tr class="hover:bg-muted/30 transition-colors group">
     <td class="py-4 px-6">
         <div class="flex items-center gap-2">
             <a href="{{ transfer.tx_url }}" target="_blank" class="text-primary hover:underline font-mono">{{ transfer.tx_digest }}</a>
-            <button class="text-muted-foreground hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('{{ transfer.tx_digest_full }}')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-            </button>
+            {{ buttons::copy_button(transfer.tx_digest_full) }}
         </div>
     </td>
     <td class="py-4 px-6">
@@ -16,9 +15,7 @@
     <td class="py-4 px-6">
         <div class="flex items-center gap-2">
             <a href="{{ transfer.from_url }}" target="_blank" class="text-primary hover:underline font-mono">{{ transfer.from }}</a>
-            <button class="text-muted-foreground hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('{{ transfer.from_full }}')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-            </button>
+            {{ buttons::copy_button(transfer.from_full) }}
         </div>
     </td>
     {% else %}
@@ -27,9 +24,7 @@
     <td class="py-4 px-6">
         <div class="flex items-center gap-2">
             <a href="{{ transfer.to_url }}" target="_blank" class="text-primary hover:underline font-mono">{{ transfer.to }}</a>
-            <button class="text-muted-foreground hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('{{ transfer.to_full }}')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-            </button>
+            {{ buttons::copy_button(transfer.to_full) }}
         </div>
     </td>
 </tr>

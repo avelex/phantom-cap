@@ -1,20 +1,17 @@
+{% import "macros.html" as buttons %}
 {% for version in versions %}
 <tr class="hover:bg-muted/30 transition-colors group">
     <td class="py-4 px-6 text-foreground font-mono">{{ version.version }}</td>
     <td class="py-4 px-6">
         <div class="flex items-center gap-2">
              <a href="{{ version.package_url }}" target="_blank" class="text-primary hover:underline font-mono">{{ version.package_id }}</a>
-             <button class="text-muted-foreground hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('{{ version.package_id_full }}')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-            </button>
+             {{ buttons::copy_button(version.package_id_full) }}
         </div>
     </td>
     <td class="py-4 px-6">
         <div class="flex items-center gap-2">
             <a href="{{ version.tx_url }}" target="_blank" class="text-primary hover:underline font-mono">{{ version.tx_digest }}</a>
-            <button class="text-muted-foreground hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('{{ version.tx_digest_full }}')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-            </button>
+            {{ buttons::copy_button(version.tx_digest_full) }}
         </div>
     </td>
     <td class="py-4 px-6">
