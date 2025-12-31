@@ -26,6 +26,10 @@ mod models;
 mod schema;
 
 const SUI_TX_EXPLORER_URL: &str = "https://suivision.xyz/txblock/";
+const SUI_CHECKPOINT_EXPLORER_URL: &str = "https://suivision.xyz/checkpoint/";
+const SUI_PACKAGE_EXPLORER_URL: &str = "https://suivision.xyz/package/";
+const SUI_ADDRESS_EXPLORER_URL: &str = "https://suivision.xyz/account/";
+const SUI_OBJECT_EXPLORER_URL: &str = "https://suivision.xyz/object/";
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -42,11 +46,15 @@ struct SearchResult {
 struct Cap {
     id: String,
     short_id: String,
+    id_url: String,
     package: String,
+    package_url: String,
     version: String,
     policy: String,
     owner: String,
+    owner_url: String,
     created_by: String,
+    created_by_url: String,
     tx_digest_url: String,
     time_ago: String,
 }
@@ -66,9 +74,11 @@ struct CapTransfersTemplate {
 pub struct CapVersion {
     pub version: i64,
     pub package_id: String,
+    pub package_url: String,
     pub tx_digest: String,
     pub tx_url: String,
     pub seq_checkpoint: i64,
+    pub seq_checkpoint_url: String,
     pub time_ago: String,
 }
 
@@ -76,9 +86,12 @@ pub struct CapTransfer {
     pub tx_digest: String,
     pub tx_url: String,
     pub seq_checkpoint: i64,
+    pub seq_checkpoint_url: String,
     pub time_ago: String,
     pub from: String,
+    pub from_url: String,
     pub to: String,
+    pub to_url: String,
 }
 
 #[derive(Deserialize)]
@@ -151,9 +164,12 @@ async fn show_cap_transfers(
                 tx_digest: short_sui_object_id(&t.tx_digest),
                 tx_url: sui_tx_url(&t.tx_digest),
                 seq_checkpoint: t.seq_checkpoint,
+                seq_checkpoint_url: sui_checkpoint_url(&t.seq_checkpoint),
                 time_ago,
                 from: short_sui_object_id(&t.old_owner_address),
+                from_url: sui_address_url(&t.old_owner_address),
                 to: short_sui_object_id(&t.new_owner_address),
+                to_url: sui_address_url(&t.new_owner_address),
             }
         })
         .collect();
@@ -185,9 +201,11 @@ async fn show_cap_versions(
             CapVersion {
                 version: v.version,
                 package_id: short_sui_object_id(&v.package_id),
+                package_url: sui_package_url(&v.package_id),
                 tx_digest: short_sui_object_id(&v.tx_digest),
                 tx_url: sui_tx_url(&v.tx_digest),
                 seq_checkpoint: v.seq_checkpoint,
+                seq_checkpoint_url: sui_checkpoint_url(&v.seq_checkpoint),
                 time_ago,
             }
         })
@@ -220,8 +238,8 @@ async fn fetch_cap_details(
         .optional()
         .map_err(error::ErrorInternalServerError)?;
 
-    let (package, version_str) = match latest_version {
-        Some(v) => (short_sui_object_id(&v.package_id), v.version.to_string()),
+    let (package_id, version_str) = match latest_version {
+        Some(v) => (v.package_id, v.version.to_string()),
         None => ("Unknown".to_string(), "0".to_string()),
     };
 
@@ -233,8 +251,8 @@ async fn fetch_cap_details(
         .optional()
         .map_err(error::ErrorInternalServerError)?;
 
-    let owner = match latest_transfer {
-        Some(t) => short_sui_object_id(&t.new_owner_address),
+    let owner_address = match latest_transfer {
+        Some(t) => t.new_owner_address,
         None => "Unknown".to_string(),
     };
 
@@ -246,8 +264,13 @@ async fn fetch_cap_details(
         .optional()
         .map_err(error::ErrorInternalServerError)?;
 
-    let created_by = match first_transfer {
+    let created_by = match &first_transfer {
         Some(t) => short_sui_object_id(&t.new_owner_address),
+        None => "Unknown".to_string(),
+    };
+
+    let created_by_url = match &first_transfer {
+        Some(t) => sui_address_url(&t.new_owner_address),
         None => "Unknown".to_string(),
     };
 
@@ -257,12 +280,16 @@ async fn fetch_cap_details(
 
     Ok(Cap {
         id: cap.object_id.clone(),
+        id_url: sui_object_url(&cap.object_id),
         short_id: short_sui_object_id(&cap.object_id),
-        package,
+        package: short_sui_object_id(&package_id),
+        package_url: sui_package_url(&package_id),
         version: version_str,
         policy: policy_str,
-        owner,
+        owner: short_sui_object_id(&owner_address),
+        owner_url: sui_address_url(&owner_address),
         created_by,
+        created_by_url,
         tx_digest_url: sui_tx_url(&cap.created_tx_digest),
         time_ago,
     })
@@ -300,6 +327,22 @@ fn short_sui_object_id(id: &str) -> String {
 
 fn sui_tx_url(tx_digest: &str) -> String {
     format!("{}{}", SUI_TX_EXPLORER_URL, tx_digest)
+}
+
+fn sui_checkpoint_url(checkpoint: &i64) -> String {
+    format!("{}{}", SUI_CHECKPOINT_EXPLORER_URL, checkpoint)
+}
+
+fn sui_package_url(package_id: &str) -> String {
+    format!("{}{}", SUI_PACKAGE_EXPLORER_URL, package_id)
+}
+
+fn sui_address_url(address: &str) -> String {
+    format!("{}{}", SUI_ADDRESS_EXPLORER_URL, address)
+}
+
+fn sui_object_url(object_id: &str) -> String {
+    format!("{}{}", SUI_OBJECT_EXPLORER_URL, object_id)
 }
 
 fn format_time_ago(timestamp: &DateTime<Utc>, current: &DateTime<Utc>) -> String {

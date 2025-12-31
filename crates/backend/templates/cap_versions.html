@@ -1,11 +1,15 @@
 {% for version in versions %}
 <tr class="bg-white hover:bg-gray-50 transition-colors">
     <td class="py-4 px-6 border-b border-r border-l border-black first:rounded-l-xl last:rounded-r-xl first:border-l-[3px] last:border-r-[3px] border-b-[3px]">{{ version.version }}</td>
-    <td class="py-4 px-6 border-b border-r border-black border-b-[3px] font-mono text-sm break-all">{{ version.package_id }}</td>
     <td class="py-4 px-6 border-b border-r border-black border-b-[3px]">
-        <a href="{{ version.tx_url }}" target="_blank" class="text-blue-600 hover:underline font-mono text-sm break-all">{{ version.tx_digest }}</a>
+        <a href="{{ version.package_url }}" target="_blank" class="text-blue-600">{{ version.package_id }}</a>
     </td>
-    <td class="py-4 px-6 border-b border-r border-black border-b-[3px]">{{ version.seq_checkpoint }}</td>
+    <td class="py-4 px-6 border-b border-r border-black border-b-[3px]">
+        <a href="{{ version.tx_url }}" target="_blank" class="text-blue-600">{{ version.tx_digest }}</a>
+    </td>
+    <td class="py-4 px-6 border-b border-r border-black border-b-[3px]">
+        <a href="{{ version.seq_checkpoint_url }}" target="_blank" class="text-blue-600">{{ version.seq_checkpoint }}</a>
+    </td>
     <td class="py-4 px-6 border-b border-r border-black last:border-r-[3px] border-b-[3px]">{{ version.time_ago }}</td>
 </tr>
 {% endfor %}
