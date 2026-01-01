@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+    --font-sans: 'Outfit', sans-serif;
+    --font-heading: 'Space Grotesk', sans-serif;
+
+    --color-background: #0A0E1A;
+    --color-foreground: #FFFFFF;
+
+    --color-card: #151B2E;
+    --color-card-foreground: #FFFFFF;
+
+    --color-primary: #1E90FF;
+    --color-primary-foreground: #FFFFFF;
+
+    --color-muted: #1F2937;
+    --color-muted-foreground: #9CA3AF;
+
+    --color-border: #1F2937;
+    --color-input: #1F2937;
+}
