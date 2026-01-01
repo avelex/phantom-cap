@@ -7,9 +7,9 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Htmx CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js" integrity="sha384-/TgkGk7p307TH7EXJDuUlgG3Ce1UVolAOFopFekQkkXihi5u/6OCvVKyz1W+idaz" crossorigin="anonymous"></script>
+    <script src="/static/scripts/htmx.min.js"></script>
     <!-- Alpine JS -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    <script defer src="/static/scripts/alpine.min.js"></script>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,11 +59,11 @@
         <div class="container mx-auto px-6 py-4">
             <div class="flex items-center justify-between">
                 <a href="/" class="flex items-center hover:opacity-80 transition-opacity">
-                    <img src="/assets/logo.png" alt="Phantom Cap Logo" class="w-12 h-12">
+                    <img src="/static/assets/logo.png" alt="Phantom Cap Logo" class="w-12 h-12">
                     <span class="text-2xl font-bold tracking-tight font-heading">PhantomC</span>
                 </a>
                 {% block header %}{% endblock %}
-                <nav class="flex gap-6 items-center">
+                <!-- <nav class="flex gap-6 items-center">
                     <a href="/" class="text-muted-foreground hover:text-primary transition-colors">
                         Explorer
                     </a>
@@ -73,7 +73,7 @@
                     <a href="#" class="text-muted-foreground hover:text-primary transition-colors">
                         Stats
                     </a>
-                </nav>
+                </nav> -->
             </div>
         </div>
     </header>

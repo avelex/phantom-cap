@@ -508,7 +508,7 @@ async fn main() -> std::io::Result<()> {
             .service(show_cap_transfers)
             .service(show_cap_versions)
             .service(show_package_info)
-            .service(fs::Files::new("/assets", "assets").show_files_listing())
+            .service(fs::Files::new("/static", "static").show_files_listing())
             .default_service(web::route().to(not_found))
     })
     .bind(("127.0.0.1", 8080))?
