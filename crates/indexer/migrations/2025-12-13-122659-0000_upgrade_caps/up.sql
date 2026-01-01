@@ -33,9 +33,13 @@ CREATE TABLE IF NOT EXISTS upgrade_cap_versions (
     version BIGINT NOT NULL,
     seq_checkpoint BIGINT NOT NULL,
     tx_digest TEXT NOT NULL,
+    publisher TEXT NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (object_id, version)
 );
 
 CREATE INDEX IF NOT EXISTS 
     upgrade_cap_versions_object_idx ON upgrade_cap_versions USING HASH (object_id);
+
+CREATE INDEX IF NOT EXISTS 
+    upgrade_cap_versions_package_idx ON upgrade_cap_versions USING HASH (package_id);

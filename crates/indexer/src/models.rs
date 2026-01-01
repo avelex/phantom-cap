@@ -73,6 +73,7 @@ impl FullUpgradeCap {
             version: self.version,
             seq_checkpoint: self.created_seq_checkpoint,
             tx_digest: self.created_tx_digest.clone(),
+            publisher: self.owner_address.clone(),
             timestamp: self.created_at,
         }
     }
@@ -118,5 +119,6 @@ pub struct UpgradeCapVersion {
     pub version: i64,
     pub seq_checkpoint: i64,
     pub tx_digest: String,
+    pub publisher: String,
     pub timestamp: DateTime<Utc>,
 }

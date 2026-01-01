@@ -73,6 +73,23 @@ struct CapTransfersTemplate {
     transfers: Vec<CapTransfer>,
 }
 
+#[derive(Template)]
+#[template(path = "package.html")]
+struct Package {
+    id: String,
+    short_id: String,
+    id_url: String,
+    upgrade_cap_id: String,
+    upgrade_cap_id_full: String,
+    upgrade_cap_id_url: String,
+    version: i64,
+    published_by: String,
+    published_by_full: String,
+    published_by_url: String,
+    tx_digest_url: String,
+    time_ago: String,
+}
+
 pub struct CapVersion {
     pub version: i64,
     pub package_id: String,
@@ -244,6 +261,44 @@ async fn show_cap_versions(
         .render()
         .map_err(error::ErrorInternalServerError)?,
     ))
+}
+
+#[get("/package/{id}")]
+async fn show_package_info(
+    pool: web::Data<DbPool>,
+    id: web::Path<String>,
+) -> actix_web::Result<Html> {
+    let mut conn = pool.get().await.map_err(error::ErrorInternalServerError)?;
+    let package = fetch_package_details(&mut conn, &id).await?;
+    Ok(Html::new(
+        package.render().map_err(error::ErrorInternalServerError)?,
+    ))
+}
+
+async fn fetch_package_details(
+    conn: &mut AsyncPgConnection,
+    id: &str,
+) -> Result<Package, actix_web::Error> {
+    let package = upgrade_cap_versions_dsl::upgrade_cap_versions
+        .filter(upgrade_cap_versions_dsl::package_id.eq(id))
+        .first::<models::UpgradeCapVersion>(conn)
+        .await
+        .map_err(error::ErrorInternalServerError)?;
+
+    Ok(Package {
+        id: package.package_id.clone(),
+        short_id: short_sui_object_id(&package.package_id),
+        id_url: sui_package_url(&package.package_id),
+        upgrade_cap_id: short_sui_object_id(&package.object_id),
+        upgrade_cap_id_full: package.object_id.clone(),
+        upgrade_cap_id_url: sui_object_url(&package.object_id),
+        version: package.version,
+        published_by: short_sui_object_id(&package.publisher),
+        published_by_full: package.publisher.clone(),
+        published_by_url: sui_address_url(&package.publisher),
+        tx_digest_url: sui_tx_url(&package.tx_digest),
+        time_ago: format_time_ago(&package.timestamp, &chrono::Utc::now()),
+    })
 }
 
 async fn fetch_cap_details(
@@ -439,6 +494,7 @@ async fn main() -> std::io::Result<()> {
             .service(show_cap_info)
             .service(show_cap_transfers)
             .service(show_cap_versions)
+            .service(show_package_info)
             .default_service(web::route().to(not_found))
     })
     .bind(("127.0.0.1", 8080))?
@@ -474,6 +530,7 @@ async fn load_mock_data(pool: &DbPool) -> Result<()> {
             .to_string(),
         version: 1,
         seq_checkpoint: 213327389,
+        publisher: "0x066ceb4e01d5dbfda6f6737dd484a9085851624604cae86ac4c4712af7627d24".to_string(),
         tx_digest: "8fzRTEaUQNHQmpYXdRcbX1qsn9gvNk6pABPu86koLmfy".to_string(),
         timestamp: date.to_utc(),
     };

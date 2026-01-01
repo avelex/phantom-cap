@@ -86,5 +86,6 @@ pub struct UpgradeCapVersion {
     pub version: i64,
     pub seq_checkpoint: i64,
     pub tx_digest: String,
+    pub publisher: String,
     pub timestamp: DateTime<Utc>,
 }

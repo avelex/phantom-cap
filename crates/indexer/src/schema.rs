@@ -24,6 +24,7 @@ diesel::table! {
         version -> Int8,
         seq_checkpoint -> Int8,
         tx_digest -> Text,
+        publisher -> Text,
         timestamp -> Timestamptz,
     }
 }

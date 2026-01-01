@@ -5,7 +5,7 @@ use std::sync::Arc;
 use sui_types::SUI_FRAMEWORK_PACKAGE_ID;
 use sui_types::effects::TransactionEffectsAPI;
 use sui_types::move_package::UpgradeCap;
-use sui_types::object::Data;
+use sui_types::object::{Data, Owner};
 use sui_types::storage::ObjectKey;
 use sui_types::transaction::{
     Argument, CallArg, Command, ObjectArg, TransactionDataAPI, TransactionKind,
@@ -61,7 +61,7 @@ impl Processor for UpgradeCapHandler {
                     })
                     .filter_map(|call| {
                         // assume that first argument is upgrade cap.
-                        let mutated_upgrade_cap = call.arguments.get(0).and_then(|arg| {
+                        let ownable_mutated_upgrade_cap = call.arguments.get(0).and_then(|arg| {
                             let Argument::Input(idx) = arg else {
                                 return None;
                             };
@@ -98,11 +98,24 @@ impl Processor for UpgradeCapHandler {
 
                                     let upgrade_cap = obj.to_rust::<UpgradeCap>().unwrap();
 
-                                    Some(upgrade_cap)
+                                    let owner = match obj.owner() {
+                                        Owner::AddressOwner(address) => address.to_string(),
+                                        Owner::ObjectOwner(address) => address.to_string(),
+                                        Owner::Shared {
+                                            initial_shared_version: _,
+                                        } => "shared".to_string(),
+                                        Owner::Immutable => "immutable".to_string(),
+                                        Owner::ConsensusAddressOwner {
+                                            start_version: _,
+                                            owner: address,
+                                        } => address.to_string(),
+                                    };
+
+                                    Some((upgrade_cap, owner))
                                 })
                         });
 
-                        if let Some(upgrade_cap) = mutated_upgrade_cap {
+                        if let Some((upgrade_cap, owner)) = ownable_mutated_upgrade_cap {
                             println!(
                                 "[UPGRADE] Tx: {} Id: {}",
                                 tx.transaction.digest(),
@@ -115,6 +128,7 @@ impl Processor for UpgradeCapHandler {
                                 package_id: upgrade_cap.package.bytes.to_hex_literal(),
                                 tx_digest: tx.transaction.digest().to_string(),
                                 seq_checkpoint: checkpoint_seq,
+                                publisher: owner,
                                 timestamp: checkpoint_timestamp,
                             })
                         } else {

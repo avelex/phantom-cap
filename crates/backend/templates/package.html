@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% import "macros.html" as buttons %}
+
+{% block title %}Package: {{ short_id }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-6 py-8">
+    <div class="space-y-8">
+        <div class="flex items-center gap-4">
+             <h1 class="text-3xl font-bold font-heading">{{ short_id }}</h1>
+             {{ buttons::copy_button(id) }}
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Overview Card -->
+            <div class="bg-card border border-border rounded-xl p-8">
+                <h2 class="text-xl font-bold font-heading mb-8">Overview</h2>
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center bg-card/50">
+                        <span class="text-muted-foreground font-medium">Upgrade Cap:</span>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ upgrade_cap_id_url }}" class="text-primary hover:text-primary/80 transition-colors font-mono text-sm truncate max-w-[200px]">{{ upgrade_cap_id }}</a>
+                            {{ buttons::copy_button(upgrade_cap_id_full) }}
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                         <span class="text-muted-foreground font-medium">Version:</span>
+                        <span class="font-mono">{{ version }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- More Info Card -->
+            <div class="bg-card border border-border rounded-xl p-8 flex justify-between">
+                <div>
+                     <h2 class="text-xl font-bold font-heading mb-8">More Info</h2>
+                     <div class="space-y-2">
+                         <span class="text-muted-foreground font-medium block">Published By</span>
+                         <div class="flex items-center gap-2 text-sm">
+                             <a href="{{ published_by_url }}" class="text-primary hover:text-primary/80 transition-colors font-mono">{{ published_by }}</a>
+                             {{ buttons::copy_button(published_by_full) }}
+                             <span class="text-muted-foreground">|</span>
+                             <a href="{{ tx_digest_url }}" class="text-primary hover:text-primary/80 transition-colors font-mono">{{ time_ago }}</a>
+                         </div>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
