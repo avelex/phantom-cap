@@ -11,7 +11,7 @@ use diesel_async::{
 use serde::Deserialize;
 
 use anyhow::Result;
-use sui_types::base_types::SuiAddress;
+use sui_types::base_types::{ObjectID, SuiAddress};
 
 use crate::schema::upgrade_cap_transfers::dsl as upgrade_cap_transfers_dsl;
 use crate::schema::upgrade_cap_versions::dsl as upgrade_cap_versions_dsl;
@@ -176,8 +176,9 @@ async fn find_upgrade_cap_by_id(
 
 #[get("/cap/{id}")]
 async fn show_cap_info(pool: web::Data<DbPool>, id: web::Path<String>) -> actix_web::Result<Html> {
+    let object_id = ObjectID::from_hex_literal(&id).map_err(error::ErrorBadRequest)?;
     let mut conn = pool.get().await.map_err(error::ErrorInternalServerError)?;
-    let cap = fetch_cap_details(&mut conn, &id).await?;
+    let cap = fetch_cap_details(&mut conn, &object_id.to_hex_literal()).await?;
     Ok(Html::new(
         cap.render().map_err(error::ErrorInternalServerError)?,
     ))
@@ -188,8 +189,9 @@ async fn show_cap_transfers(
     pool: web::Data<DbPool>,
     id: web::Path<String>,
 ) -> actix_web::Result<Html> {
+    let object_id = ObjectID::from_hex_literal(&id).map_err(error::ErrorBadRequest)?;
     let mut conn = pool.get().await.map_err(error::ErrorInternalServerError)?;
-    let transfers = fetch_cap_transfers_history(&mut conn, &id)
+    let transfers = fetch_cap_transfers_history(&mut conn, &object_id.to_hex_literal())
         .await
         .unwrap_or(vec![]);
 
@@ -229,8 +231,9 @@ async fn show_cap_versions(
     pool: web::Data<DbPool>,
     id: web::Path<String>,
 ) -> actix_web::Result<Html> {
+    let object_id = ObjectID::from_hex_literal(&id).map_err(error::ErrorBadRequest)?;
     let mut conn = pool.get().await.map_err(error::ErrorInternalServerError)?;
-    let versions = fetch_cap_versions_history(&mut conn, &id)
+    let versions = fetch_cap_versions_history(&mut conn, &object_id.to_hex_literal())
         .await
         .unwrap_or(vec![]);
 
@@ -268,8 +271,9 @@ async fn show_package_info(
     pool: web::Data<DbPool>,
     id: web::Path<String>,
 ) -> actix_web::Result<Html> {
+    let object_id = ObjectID::from_hex_literal(&id).map_err(error::ErrorBadRequest)?;
     let mut conn = pool.get().await.map_err(error::ErrorInternalServerError)?;
-    let package = fetch_package_details(&mut conn, &id).await?;
+    let package = fetch_package_details(&mut conn, &object_id.to_hex_literal()).await?;
     Ok(Html::new(
         package.render().map_err(error::ErrorInternalServerError)?,
     ))
@@ -291,7 +295,7 @@ async fn fetch_package_details(
         id_url: sui_package_url(&package.package_id),
         upgrade_cap_id: short_sui_object_id(&package.object_id),
         upgrade_cap_id_full: package.object_id.clone(),
-        upgrade_cap_id_url: sui_object_url(&package.object_id),
+        upgrade_cap_id_url: phantom_cap_url(&package.object_id),
         version: package.version,
         published_by: short_sui_object_id(&package.publisher),
         published_by_full: package.publisher.clone(),
@@ -365,7 +369,7 @@ async fn fetch_cap_details(
         short_id: short_sui_object_id(&cap.object_id),
         package: short_sui_object_id(&package_id),
         package_full: package_id.clone(),
-        package_url: sui_package_url(&package_id),
+        package_url: phantom_package_url(&package_id),
         version: version_str,
         policy: policy_str,
         owner: short_sui_object_id(&owner_address),
@@ -448,6 +452,14 @@ fn sui_address_url(address: &str) -> String {
 
 fn sui_object_url(object_id: &str) -> String {
     format!("{}{}", SUI_OBJECT_EXPLORER_URL, object_id)
+}
+
+fn phantom_cap_url(cap_id: &str) -> String {
+    format!("/cap/{}", cap_id)
+}
+
+fn phantom_package_url(package_id: &str) -> String {
+    format!("/package/{}", package_id)
 }
 
 fn format_time_ago(timestamp: &DateTime<Utc>, current: &DateTime<Utc>) -> String {
