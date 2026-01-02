@@ -1,12 +1,10 @@
+<div class="bg-card border border-border rounded-md">
 {%- match self -%}
     {%- when Self::Cap(id) -%}
-        <div>
-            <p>Cap</p>
-            <a href="/cap/{{ id }}">{{ id }}</a>
-        </div>
+        <p>UpgradeCap</p>
+        <a href="/cap/{{ id }}">{{ id }}</a>
     {%- when Self::Package(id) -%}
-        <div>
-            <p>Package</p>
-            <a href="/package/{{ id }}">{{ id }}</a>
-        </div>
+        <p>Package</p>
+        <a href="/package/{{ id }}">{{ id }}</a>
 {%- endmatch -%}
+</div>
