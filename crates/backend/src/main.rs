@@ -1,6 +1,6 @@
 use actix_files as fs;
 use actix_web::web::Html;
-use actix_web::{App, HttpServer, Responder, error, get, web};
+use actix_web::{App, HttpServer, error, get, middleware::Logger, web};
 use askama::Template;
 use chrono::{DateTime, Utc};
 use diesel::OptionalExtension;
@@ -13,6 +13,7 @@ use serde::Deserialize;
 
 use anyhow::Result;
 use sui_types::base_types::{ObjectID, SuiAddress};
+use url::Url;
 
 use crate::schema::upgrade_cap_transfers::dsl as upgrade_cap_transfers_dsl;
 use crate::schema::upgrade_cap_versions::dsl as upgrade_cap_versions_dsl;
@@ -80,7 +81,7 @@ struct CapTransfersTemplate {
 struct Package {
     id: String,
     short_id: String,
-    id_url: String,
+    // id_url: String,
     upgrade_cap_id: String,
     upgrade_cap_id_full: String,
     upgrade_cap_id_url: String,
@@ -309,7 +310,7 @@ async fn fetch_package_details(
     Ok(Package {
         id: package.package_id.clone(),
         short_id: short_sui_object_id(&package.package_id),
-        id_url: sui_package_url(&package.package_id),
+        // id_url: sui_package_url(&package.package_id),
         upgrade_cap_id: short_sui_object_id(&package.object_id),
         upgrade_cap_id_full: package.object_id.clone(),
         upgrade_cap_id_url: phantom_cap_url(&package.object_id),
@@ -507,16 +508,30 @@ type DbPool = Pool<AsyncPgConnection>;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let manager = AsyncDieselConnectionManager::<AsyncPgConnection>::new(
-        "postgres://postgres:0681d7bf4e0c@localhost:5432/phantom",
-    );
+    dotenvy::dotenv().ok();
+    env_logger::init();
 
+    let database_url = std::env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set")
+        .parse::<Url>()
+        .expect("Invalid database URL");
+
+    let host = std::env::var("HOST").unwrap_or("127.0.0.1".to_string());
+    let port = std::env::var("PORT")
+        .unwrap_or("8080".to_string())
+        .parse::<u16>()
+        .unwrap();
+
+    let manager = AsyncDieselConnectionManager::<AsyncPgConnection>::new(database_url);
     let pool = Pool::builder().build(manager).await.unwrap();
 
     load_mock_data(&pool).await.unwrap();
 
     HttpServer::new(move || {
+        let logger = Logger::default();
+
         App::new()
+            .wrap(logger)
             .app_data(web::Data::new(pool.clone()))
             .service(home)
             .service(search_cap)
@@ -527,7 +542,7 @@ async fn main() -> std::io::Result<()> {
             .service(fs::Files::new("/static", "static").show_files_listing())
             .default_service(web::route().to(not_found))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind((host, port))?
     .run()
     .await
 }
