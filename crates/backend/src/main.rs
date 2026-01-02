@@ -35,10 +35,11 @@ struct HomePage {
     transfers_count: i64,
 }
 
-#[derive(Template)]
+#[derive(Template, Debug)]
 #[template(path = "search.html")]
-struct SearchResult {
-    id: String,
+enum SearchResult {
+    Cap(String),
+    Package(String),
 }
 
 #[derive(Template)]
@@ -143,25 +144,30 @@ async fn home(pool: web::Data<DbPool>) -> actix_web::Result<Html> {
     ))
 }
 
-#[get("/cap/search")]
+#[get("/search")]
 async fn search_cap(
     pool: web::Data<DbPool>,
     query: web::Query<SearchQuery>,
 ) -> actix_web::Result<Html> {
-    let cap_id = query.id.clone();
+    let object_id = ObjectID::from_hex_literal(&query.id.clone())
+        .map_err(error::ErrorBadRequest)?
+        .to_hex_literal();
 
-    let mut conn = pool
-        .get()
-        .await
-        .expect("couldn't get db connection from pool");
+    let mut conn = pool.get().await.map_err(error::ErrorInternalServerError)?;
 
-    let cap = find_upgrade_cap_by_id(&mut conn, &cap_id).await;
+    let cap_result = find_upgrade_cap_by_id(&mut conn, &object_id).await;
+    let package_result = find_package_by_id(&mut conn, &object_id).await;
 
-    match cap {
-        Ok(cap) => Ok(Html::new(
-            SearchResult { id: cap.object_id }.render().unwrap(),
-        )),
-        Err(_) => Ok(Html::new("Not Found")),
+    if let Ok(cap) = cap_result {
+        return Ok(Html::new(
+            SearchResult::Cap(cap.object_id).render().unwrap(),
+        ));
+    } else if let Ok(package) = package_result {
+        return Ok(Html::new(
+            SearchResult::Package(package.package_id).render().unwrap(),
+        ));
+    } else {
+        return Ok(Html::new("Not Found"));
     }
 }
 
@@ -172,6 +178,16 @@ async fn find_upgrade_cap_by_id(
     upgrade_caps_dsl::upgrade_caps
         .filter(upgrade_caps_dsl::object_id.eq(&id))
         .first::<models::UpgradeCap>(conn)
+        .await
+}
+
+async fn find_package_by_id(
+    conn: &mut AsyncPgConnection,
+    id: &String,
+) -> QueryResult<models::UpgradeCapVersion> {
+    upgrade_cap_versions_dsl::upgrade_cap_versions
+        .filter(upgrade_cap_versions_dsl::package_id.eq(&id))
+        .first::<models::UpgradeCapVersion>(conn)
         .await
 }
 

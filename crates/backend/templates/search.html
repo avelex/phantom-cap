@@ -1,1 +1,12 @@
-<a href="/cap/{{ id }}">{{ id }}</a>
+{%- match self -%}
+    {%- when Self::Cap(id) -%}
+        <div>
+            <p>Cap</p>
+            <a href="/cap/{{ id }}">{{ id }}</a>
+        </div>
+    {%- when Self::Package(id) -%}
+        <div>
+            <p>Package</p>
+            <a href="/package/{{ id }}">{{ id }}</a>
+        </div>
+{%- endmatch -%}
