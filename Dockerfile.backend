@@ -1,0 +1,50 @@
+# Stage 1: Builder
+FROM rust:1.92-slim-bookworm AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    clang \
+    libclang-dev \
+    pkg-config \
+    libssl-dev \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy the entire workspace
+COPY . .
+
+# Build the backend crate
+RUN cargo build -p backend --release
+
+# Stage 2: Runtime
+FROM debian:bookworm-slim AS runtime
+
+# Install necessary runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libssl3 \
+    ca-certificates \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Create a non-root user for security
+RUN groupadd -g 1000 app && \
+    useradd -u 1000 -g app -s /bin/sh -m appuser
+
+# Copy the compiled binary and assets
+COPY --from=builder /app/target/release/backend /app/backend
+COPY --from=builder /app/crates/backend/static /app/static
+COPY --from=builder /app/crates/backend/templates /app/templates
+
+# Set ownership
+RUN chown -R appuser:app /app
+
+# Use the non-root user
+USER appuser
+
+# Default command
+CMD ["/app/backend"]
