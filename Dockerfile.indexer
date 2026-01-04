@@ -17,7 +17,7 @@ RUN cargo chef cook --profile release --recipe-path recipe.json
 
 # Build application
 COPY . .
-RUN cargo build --profile release --locked --bin indexer
+RUN cargo build --profile release --locked -p indexer
 
 # Use Debian as the release image
 FROM debian:trixie-slim AS runtime
