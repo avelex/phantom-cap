@@ -1,7 +1,3 @@
-<picture>
-    <img src="./crates/backend/static/assets/logo-minimal.png" alt="Phantom Art">
-</picture>
+<img src="./crates/backend/static/assets/logo.png" alt="Phantom Cap Logo" width="400px" height="400px">
 
-# Phantom Cap 
-
-Phantom Cap is a *UpgradeCap* explorer on Sui blockchain.
+# Phantom Cap - UpgradeCap explorer for Sui
