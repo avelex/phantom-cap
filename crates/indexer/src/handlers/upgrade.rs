@@ -1,6 +1,7 @@
 use anyhow::Result;
 use chrono::DateTime;
 use diesel_async::RunQueryDsl;
+use log::info;
 use std::sync::Arc;
 use sui_types::SUI_FRAMEWORK_PACKAGE_ID;
 use sui_types::effects::TransactionEffectsAPI;
@@ -116,7 +117,7 @@ impl Processor for UpgradeCapHandler {
                         });
 
                         if let Some((upgrade_cap, owner)) = ownable_mutated_upgrade_cap {
-                            println!(
+                            info!(
                                 "[UPGRADE] Tx: {} Id: {}",
                                 tx.transaction.digest(),
                                 upgrade_cap.id.object_id().to_hex_literal()

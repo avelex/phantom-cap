@@ -3,6 +3,7 @@ use chrono::DateTime;
 use diesel::result::Error;
 use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
+use log::info;
 use std::sync::Arc;
 use sui_indexer_alt_framework::pipeline::Processor;
 use sui_indexer_alt_framework::{
@@ -127,7 +128,7 @@ impl Processor for UpgradeCapHandler {
             .filter(|tx| tx.effects.status().is_ok())
             .flat_map(|tx| get_created_upgrade_caps(tx, &checkpoint.object_set))
             .map(|ownable_upgrade_cap| {
-                println!(
+                info!(
                     "[CREATED] Tx: {} Id: {}",
                     ownable_upgrade_cap.tx_digest,
                     ownable_upgrade_cap
@@ -136,6 +137,10 @@ impl Processor for UpgradeCapHandler {
                         .object_id()
                         .to_hex_literal(),
                 );
+
+                let upgrade_policy =
+                    UpgradeCompatibilityPolicyEnum::from_u8(ownable_upgrade_cap.upgrade_cap.policy)
+                        .unwrap_or(UpgradeCompatibilityPolicyEnum::Compatible);
 
                 FullUpgradeCap {
                     object_id: ownable_upgrade_cap
@@ -149,7 +154,7 @@ impl Processor for UpgradeCapHandler {
                         .bytes
                         .to_hex_literal(),
                     owner_address: ownable_upgrade_cap.owner,
-                    policy: UpgradeCompatibilityPolicyEnum::Compatible,
+                    policy: upgrade_policy,
                     version: ownable_upgrade_cap.upgrade_cap.version as i64,
                     created_seq_checkpoint: checkpoint_seq,
                     created_tx_digest: ownable_upgrade_cap.tx_digest,

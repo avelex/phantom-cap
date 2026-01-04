@@ -1,5 +1,6 @@
 use crate::schema::sql_types::UpgradeCompatibilityPolicy;
 use crate::schema::*;
+use anyhow::{Error, anyhow};
 use chrono::{DateTime, Utc};
 use diesel::deserialize::{FromSql, FromSqlRow};
 use diesel::expression::AsExpression;
@@ -10,6 +11,7 @@ use diesel::*;
 use std::io::Write;
 use sui_indexer_alt_framework::FieldCount;
 use sui_types::base_types::SuiAddress;
+use sui_types::move_package::UpgradePolicy;
 
 #[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq, Clone)]
 #[diesel(sql_type = UpgradeCompatibilityPolicy)]
@@ -18,6 +20,26 @@ pub enum UpgradeCompatibilityPolicyEnum {
     Additive,
     DepOnly,
     Immutable,
+}
+
+impl UpgradeCompatibilityPolicyEnum {
+    pub fn from_u8(policy: u8) -> Result<Self, Error> {
+        match policy {
+            val if val == UpgradePolicy::Compatible as u8 => {
+                Ok(UpgradeCompatibilityPolicyEnum::Compatible)
+            }
+            val if val == UpgradePolicy::Additive as u8 => {
+                Ok(UpgradeCompatibilityPolicyEnum::Additive)
+            }
+            val if val == UpgradePolicy::DepOnly as u8 => {
+                Ok(UpgradeCompatibilityPolicyEnum::DepOnly)
+            }
+            _ => Err(anyhow!(format!(
+                "Invalid UpgradeCompatibilityPolicy: {}",
+                policy
+            ))),
+        }
+    }
 }
 
 impl ToSql<UpgradeCompatibilityPolicy, Pg> for UpgradeCompatibilityPolicyEnum {

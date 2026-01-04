@@ -1,6 +1,7 @@
 use anyhow::{Ok, Result};
 use chrono::DateTime;
 use diesel_async::RunQueryDsl;
+use log::info;
 use std::sync::Arc;
 use sui_indexer_alt_framework::pipeline::Processor;
 use sui_indexer_alt_framework::{
@@ -92,7 +93,7 @@ impl Processor for UpgradeCapHandler {
                                 return None;
                             }
 
-                            println!(
+                            info!(
                                 "[TRANSFER] Tx: {} Id: {}",
                                 tx.transaction.digest().to_string(),
                                 obj.id().to_hex_literal()

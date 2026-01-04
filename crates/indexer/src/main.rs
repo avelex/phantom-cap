@@ -2,6 +2,8 @@ mod handlers;
 mod models;
 mod schema;
 
+use log::info;
+
 use handlers::{
     created::UpgradeCapHandler as CreatedHandler, transfer::UpgradeCapHandler as TransferHandler,
     upgrade::UpgradeCapHandler as UpgradeHandler,
@@ -25,6 +27,7 @@ const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenvy::dotenv().ok();
+    env_logger::init();
 
     let database_url = std::env::var("DATABASE_URL")
         .expect("DATABASE_URL must be set")
@@ -67,7 +70,7 @@ async fn main() -> Result<()> {
         .sequential_pipeline(UpgradeHandler, SequentialConfig::default())
         .await?;
 
-    println!("Running Sequential Indexer");
+    info!("Running Sequential Indexer");
 
     let handle = cluster.run().await?;
     handle.await?;
