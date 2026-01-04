@@ -20,9 +20,20 @@ COPY . .
 RUN cargo build --profile release --locked --bin indexer
 
 # Use Debian as the release image
-FROM debian:bookworm-slim AS runtime
+FROM debian:trixie-slim AS runtime
 WORKDIR /app
 
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    clang \
+    libclang-dev \
+    pkg-config \
+    libssl-dev \
+    libpq-dev \
+    ca-certificates \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+    
 # Create a non-root user for security
 RUN groupadd -g 1000 app && \
     useradd -u 1000 -g app -s /bin/sh -m appuser
