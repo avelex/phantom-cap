@@ -525,8 +525,6 @@ async fn main() -> std::io::Result<()> {
     let manager = AsyncDieselConnectionManager::<AsyncPgConnection>::new(database_url);
     let pool = Pool::builder().build(manager).await.unwrap();
 
-    load_mock_data(&pool).await.unwrap();
-
     HttpServer::new(move || {
         let logger = Logger::default();
 
@@ -545,62 +543,4 @@ async fn main() -> std::io::Result<()> {
     .bind((host, port))?
     .run()
     .await
-}
-
-async fn load_mock_data(pool: &DbPool) -> Result<()> {
-    let mut conn = pool
-        .get()
-        .await
-        .expect("couldn't get db connection from pool");
-
-    let date = DateTime::parse_from_rfc3339("2025-11-18T00:54:41+00:00").unwrap();
-
-    let cap = models::UpgradeCap {
-        object_id: "0x6906173d537f5a1ac4556bd2653129cff278b9e1567fefe2a97fe754d3162ffb".to_string(),
-        policy: models::UpgradeCompatibilityPolicyEnum::Compatible,
-        created_at: date.to_utc(),
-        created_seq_checkpoint: 213327389,
-        created_tx_digest: "8fzRTEaUQNHQmpYXdRcbX1qsn9gvNk6pABPu86koLmfy".to_string(),
-    };
-
-    diesel::insert_into(upgrade_caps_dsl::upgrade_caps)
-        .values(&cap)
-        .on_conflict_do_nothing()
-        .execute(&mut conn)
-        .await?;
-
-    let version = models::UpgradeCapVersion {
-        object_id: cap.object_id.clone(),
-        package_id: "0x8b4a56d1811aeaeecfda30975d286200e5f27d11622246b3acf6115399b51592"
-            .to_string(),
-        version: 1,
-        seq_checkpoint: 213327389,
-        publisher: "0x066ceb4e01d5dbfda6f6737dd484a9085851624604cae86ac4c4712af7627d24".to_string(),
-        tx_digest: "8fzRTEaUQNHQmpYXdRcbX1qsn9gvNk6pABPu86koLmfy".to_string(),
-        timestamp: date.to_utc(),
-    };
-
-    diesel::insert_into(upgrade_cap_versions_dsl::upgrade_cap_versions)
-        .values(&version)
-        .on_conflict_do_nothing()
-        .execute(&mut conn)
-        .await?;
-
-    let transfer = models::UpgradeCapTransfer {
-        object_id: cap.object_id.clone(),
-        old_owner_address: SuiAddress::ZERO.to_string(),
-        new_owner_address: "0x066ceb4e01d5dbfda6f6737dd484a9085851624604cae86ac4c4712af7627d24"
-            .to_string(),
-        seq_checkpoint: 213327389,
-        tx_digest: "8fzRTEaUQNHQmpYXdRcbX1qsn9gvNk6pABPu86koLmfy".to_string(),
-        timestamp: date.to_utc(),
-    };
-
-    diesel::insert_into(upgrade_cap_transfers_dsl::upgrade_cap_transfers)
-        .values(&transfer)
-        .on_conflict_do_nothing()
-        .execute(&mut conn)
-        .await?;
-
-    Ok(())
 }

@@ -6,23 +6,21 @@ RUN apt-get update && apt-get install -y libclang-dev pkg-config
 
 # Builds a cargo-chef plan
 FROM chef AS planner
-COPY . .
+COPY --exclude=.git --exclude=dist . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
 COPY --from=planner /app/recipe.json recipe.json
 
 # Builds dependencies
-RUN cargo chef cook --profile release --recipe-path recipe.json
+RUN cargo chef cook --profile release --recipe-path recipe.json --bin backend
 
 # Build application
 COPY . .
-RUN cargo build --profile release --locked -p backend
+RUN cargo build --profile release --locked --bin backend
 
 # Use Debian as the release image
-# Use a newer Debian version (Trixie) to match GLIBC requirements
 FROM debian:trixie-slim AS runtime
-
 WORKDIR /app
 
 # Install runtime dependencies
@@ -52,4 +50,4 @@ RUN chown -R appuser:app /app
 USER appuser
 
 # Default command
-CMD ["/app/backend"]
+ENTRYPOINT ["/app/backend"]

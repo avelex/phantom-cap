@@ -6,18 +6,18 @@ RUN apt-get update && apt-get install -y libclang-dev pkg-config
 
 # Builds a cargo-chef plan
 FROM chef AS planner
-COPY . .
+COPY --exclude=.git --exclude=dist . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
 COPY --from=planner /app/recipe.json recipe.json
 
 # Builds dependencies
-RUN cargo chef cook --profile release --recipe-path recipe.json
+RUN cargo chef cook --profile release --recipe-path recipe.json --bin indexer
 
 # Build application
 COPY . .
-RUN cargo build --profile release --locked -p indexer
+RUN cargo build --profile release --locked --bin indexer
 
 # Use Debian as the release image
 FROM debian:trixie-slim AS runtime
