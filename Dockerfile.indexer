@@ -6,7 +6,6 @@ RUN apt-get update && apt-get install -y libclang-dev pkg-config
 
 # Builds a cargo-chef plan
 FROM chef AS planner
-COPY --exclude=.git --exclude=dist . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder

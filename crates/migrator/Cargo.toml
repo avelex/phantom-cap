@@ -1,0 +1,13 @@
+[package]
+name = "migrator"
+version.workspace = true
+edition.workspace = true
+exclude.workspace = true
+
+[dependencies]
+diesel.workspace = true
+diesel_migrations.workspace = true
+dotenvy.workspace = true
+url.workspace = true
+env_logger.workspace = true
+log.workspace = true

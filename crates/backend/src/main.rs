@@ -2,31 +2,20 @@ use actix_files as fs;
 use actix_web::web::Html;
 use actix_web::{App, HttpServer, error, get, middleware::Logger, web};
 use askama::Template;
-use chrono::{DateTime, Utc};
-use diesel::OptionalExtension;
-use diesel::{ExpressionMethods, QueryDsl, QueryResult};
 use diesel_async::{
-    AsyncPgConnection, RunQueryDsl,
+    AsyncPgConnection,
     pooled_connection::{AsyncDieselConnectionManager, bb8::Pool},
 };
 use serde::Deserialize;
 
-use anyhow::Result;
+use anyhow;
 use sui_types::base_types::{ObjectID, SuiAddress};
 use url::Url;
 
-use crate::schema::upgrade_cap_transfers::dsl as upgrade_cap_transfers_dsl;
-use crate::schema::upgrade_cap_versions::dsl as upgrade_cap_versions_dsl;
-use crate::schema::upgrade_caps::dsl as upgrade_caps_dsl;
-
+mod format;
 mod models;
+mod query;
 mod schema;
-
-const SUI_TX_EXPLORER_URL: &str = "https://suivision.xyz/txblock/";
-const SUI_CHECKPOINT_EXPLORER_URL: &str = "https://suivision.xyz/checkpoint/";
-const SUI_PACKAGE_EXPLORER_URL: &str = "https://suivision.xyz/package/";
-const SUI_ADDRESS_EXPLORER_URL: &str = "https://suivision.xyz/account/";
-const SUI_OBJECT_EXPLORER_URL: &str = "https://suivision.xyz/object/";
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -48,7 +37,6 @@ enum SearchResult {
 struct Cap {
     id: String,
     short_id: String,
-    id_url: String,
     package: String,
     package_full: String,
     package_url: String,
@@ -126,13 +114,60 @@ struct SearchQuery {
     id: String,
 }
 
+async fn fetch_cap_details(
+    conn: &mut AsyncPgConnection,
+    cap_id: &str,
+) -> anyhow::Result<Cap, actix_web::Error> {
+    let cap = query::get_cap_by_id(conn, cap_id)
+        .await
+        .map_err(error::ErrorInternalServerError)?;
+
+    let latest_version = query::get_cap_latest_version(conn, cap_id)
+        .await
+        .map_or(("Unknown".to_string(), 0), |c| (c.package_id, c.version));
+
+    let owner_address = query::get_cap_latest_transfer(conn, cap_id)
+        .await
+        .map_or(SuiAddress::ZERO.to_string(), |t| t.new_owner_address);
+
+    let created_by = query::get_cap_first_transfer(conn, cap_id)
+        .await
+        .map_or(SuiAddress::ZERO.to_string(), |t| t.new_owner_address);
+
+    let created_by_url = format::sui_address_url(&created_by);
+
+    let policy_str = cap.policy.to_string();
+    let now = chrono::Utc::now();
+    let time_ago = format::format_time_ago(&cap.created_at, &now);
+    let package_id = latest_version.0;
+    let version_str = latest_version.1.to_string();
+
+    Ok(Cap {
+        id: cap.object_id.clone(),
+        short_id: format::short_sui_object_id(&cap.object_id),
+        package: format::short_sui_object_id(&package_id),
+        package_full: package_id.clone(),
+        package_url: format::phantom_package_url(&package_id),
+        version: version_str,
+        policy: policy_str,
+        owner: format::short_sui_object_id(&owner_address),
+        owner_full: owner_address.clone(),
+        owner_url: format::sui_address_url(&owner_address),
+        created_by: format::short_sui_object_id(&created_by),
+        created_by_full: created_by.clone(),
+        created_by_url,
+        tx_digest_url: format::sui_tx_url(&cap.created_tx_digest),
+        time_ago,
+    })
+}
+
 #[get("/")]
 async fn home(pool: web::Data<DbPool>) -> actix_web::Result<Html> {
     let mut conn = pool.get().await.map_err(error::ErrorInternalServerError)?;
 
-    let upgrade_caps_count = fetch_upgrade_caps_count(&mut conn).await.unwrap_or(0);
-    let packages_count = fetch_packages_count(&mut conn).await.unwrap_or(0);
-    let transfers_count = fetch_transfers_count(&mut conn).await.unwrap_or(0);
+    let upgrade_caps_count = query::get_upgrade_caps_count(&mut conn).await.unwrap_or(0);
+    let packages_count = query::get_packages_count(&mut conn).await.unwrap_or(0);
+    let transfers_count = query::get_transfers_count(&mut conn).await.unwrap_or(0);
 
     Ok(Html::new(
         HomePage {
@@ -156,40 +191,21 @@ async fn search_cap(
 
     let mut conn = pool.get().await.map_err(error::ErrorInternalServerError)?;
 
-    let cap_result = find_upgrade_cap_by_id(&mut conn, &object_id).await;
-    let package_result = find_package_by_id(&mut conn, &object_id).await;
-
-    if let Ok(cap) = cap_result {
+    if let Ok(cap_result) = query::get_cap_by_id(&mut conn, &object_id).await {
         return Ok(Html::new(
-            SearchResult::Cap(cap.object_id).render().unwrap(),
+            SearchResult::Cap(cap_result.object_id).render().unwrap(),
         ));
-    } else if let Ok(package) = package_result {
-        return Ok(Html::new(
-            SearchResult::Package(package.package_id).render().unwrap(),
-        ));
-    } else {
-        return Ok(Html::new("Not Found"));
     }
-}
 
-async fn find_upgrade_cap_by_id(
-    conn: &mut AsyncPgConnection,
-    id: &String,
-) -> QueryResult<models::UpgradeCap> {
-    upgrade_caps_dsl::upgrade_caps
-        .filter(upgrade_caps_dsl::object_id.eq(&id))
-        .first::<models::UpgradeCap>(conn)
-        .await
-}
+    if let Ok(package_result) = query::get_package_by_id(&mut conn, &object_id).await {
+        return Ok(Html::new(
+            SearchResult::Package(package_result.package_id)
+                .render()
+                .unwrap(),
+        ));
+    }
 
-async fn find_package_by_id(
-    conn: &mut AsyncPgConnection,
-    id: &String,
-) -> QueryResult<models::UpgradeCapVersion> {
-    upgrade_cap_versions_dsl::upgrade_cap_versions
-        .filter(upgrade_cap_versions_dsl::package_id.eq(&id))
-        .first::<models::UpgradeCapVersion>(conn)
-        .await
+    Ok(Html::new("Not Found"))
 }
 
 #[get("/cap/{id}")]
@@ -209,7 +225,7 @@ async fn show_cap_transfers(
 ) -> actix_web::Result<Html> {
     let object_id = ObjectID::from_hex_literal(&id).map_err(error::ErrorBadRequest)?;
     let mut conn = pool.get().await.map_err(error::ErrorInternalServerError)?;
-    let transfers = fetch_cap_transfers_history(&mut conn, &object_id.to_hex_literal())
+    let transfers = query::get_cap_transfers_history(&mut conn, &object_id.to_hex_literal())
         .await
         .unwrap_or(vec![]);
 
@@ -217,20 +233,20 @@ async fn show_cap_transfers(
     let transfer_views = transfers
         .iter()
         .map(|t| {
-            let time_ago = format_time_ago(&t.timestamp, &now);
+            let time_ago = format::format_time_ago(&t.timestamp, &now);
             CapTransfer {
-                tx_digest: short_sui_object_id(&t.tx_digest),
+                tx_digest: format::short_sui_object_id(&t.tx_digest),
                 tx_digest_full: t.tx_digest.clone(),
-                tx_url: sui_tx_url(&t.tx_digest),
+                tx_url: format::sui_tx_url(&t.tx_digest),
                 seq_checkpoint: t.seq_checkpoint,
-                seq_checkpoint_url: sui_checkpoint_url(&t.seq_checkpoint),
+                seq_checkpoint_url: format::sui_checkpoint_url(&t.seq_checkpoint),
                 time_ago,
-                from: short_sui_object_id(&t.old_owner_address),
+                from: format::short_sui_object_id(&t.old_owner_address),
                 from_full: t.old_owner_address.clone(),
-                from_url: sui_address_url(&t.old_owner_address),
-                to: short_sui_object_id(&t.new_owner_address),
+                from_url: format::sui_address_url(&t.old_owner_address),
+                to: format::short_sui_object_id(&t.new_owner_address),
                 to_full: t.new_owner_address.clone(),
-                to_url: sui_address_url(&t.new_owner_address),
+                to_url: format::sui_address_url(&t.new_owner_address),
             }
         })
         .collect();
@@ -251,27 +267,24 @@ async fn show_cap_versions(
 ) -> actix_web::Result<Html> {
     let object_id = ObjectID::from_hex_literal(&id).map_err(error::ErrorBadRequest)?;
     let mut conn = pool.get().await.map_err(error::ErrorInternalServerError)?;
-    let versions = fetch_cap_versions_history(&mut conn, &object_id.to_hex_literal())
+    let versions = query::get_cap_versions_history(&mut conn, &object_id.to_hex_literal())
         .await
         .unwrap_or(vec![]);
 
     let now = chrono::Utc::now();
     let version_views = versions
         .iter()
-        .map(|v| {
-            let time_ago = format_time_ago(&v.timestamp, &now);
-            CapVersion {
-                version: v.version,
-                package_id: short_sui_object_id(&v.package_id),
-                package_id_full: v.package_id.clone(),
-                package_url: sui_package_url(&v.package_id),
-                tx_digest: short_sui_object_id(&v.tx_digest),
-                tx_digest_full: v.tx_digest.clone(),
-                tx_url: sui_tx_url(&v.tx_digest),
-                seq_checkpoint: v.seq_checkpoint,
-                seq_checkpoint_url: sui_checkpoint_url(&v.seq_checkpoint),
-                time_ago,
-            }
+        .map(|v| CapVersion {
+            version: v.version,
+            package_id: format::short_sui_object_id(&v.package_id),
+            package_id_full: v.package_id.clone(),
+            package_url: format::sui_package_url(&v.package_id),
+            tx_digest: format::short_sui_object_id(&v.tx_digest),
+            tx_digest_full: v.tx_digest.clone(),
+            tx_url: format::sui_tx_url(&v.tx_digest),
+            seq_checkpoint: v.seq_checkpoint,
+            seq_checkpoint_url: format::sui_checkpoint_url(&v.seq_checkpoint),
+            time_ago: format::format_time_ago(&v.timestamp, &now),
         })
         .collect();
 
@@ -291,205 +304,28 @@ async fn show_package_info(
 ) -> actix_web::Result<Html> {
     let object_id = ObjectID::from_hex_literal(&id).map_err(error::ErrorBadRequest)?;
     let mut conn = pool.get().await.map_err(error::ErrorInternalServerError)?;
-    let package = fetch_package_details(&mut conn, &object_id.to_hex_literal()).await?;
+
+    let package = query::get_package_by_id(&mut conn, &object_id.to_hex_literal())
+        .await
+        .map(|p| Package {
+            id: p.package_id.clone(),
+            short_id: format::short_sui_object_id(&p.package_id),
+            // id_url: sui_package_url(&package.package_id),
+            upgrade_cap_id: format::short_sui_object_id(&p.object_id),
+            upgrade_cap_id_full: p.object_id.clone(),
+            upgrade_cap_id_url: format::phantom_cap_url(&p.object_id),
+            version: p.version,
+            published_by: format::short_sui_object_id(&p.publisher),
+            published_by_full: p.publisher.clone(),
+            published_by_url: format::sui_address_url(&p.publisher),
+            tx_digest_url: format::sui_tx_url(&p.tx_digest),
+            time_ago: format::format_time_ago(&p.timestamp, &chrono::Utc::now()),
+        })
+        .map_err(error::ErrorInternalServerError)?;
+
     Ok(Html::new(
         package.render().map_err(error::ErrorInternalServerError)?,
     ))
-}
-
-async fn fetch_package_details(
-    conn: &mut AsyncPgConnection,
-    id: &str,
-) -> Result<Package, actix_web::Error> {
-    let package = upgrade_cap_versions_dsl::upgrade_cap_versions
-        .filter(upgrade_cap_versions_dsl::package_id.eq(id))
-        .first::<models::UpgradeCapVersion>(conn)
-        .await
-        .map_err(error::ErrorInternalServerError)?;
-
-    Ok(Package {
-        id: package.package_id.clone(),
-        short_id: short_sui_object_id(&package.package_id),
-        // id_url: sui_package_url(&package.package_id),
-        upgrade_cap_id: short_sui_object_id(&package.object_id),
-        upgrade_cap_id_full: package.object_id.clone(),
-        upgrade_cap_id_url: phantom_cap_url(&package.object_id),
-        version: package.version,
-        published_by: short_sui_object_id(&package.publisher),
-        published_by_full: package.publisher.clone(),
-        published_by_url: sui_address_url(&package.publisher),
-        tx_digest_url: sui_tx_url(&package.tx_digest),
-        time_ago: format_time_ago(&package.timestamp, &chrono::Utc::now()),
-    })
-}
-
-async fn fetch_cap_details(
-    conn: &mut AsyncPgConnection,
-    cap_id: &str,
-) -> Result<Cap, actix_web::Error> {
-    let cap = upgrade_caps_dsl::upgrade_caps
-        .filter(upgrade_caps_dsl::object_id.eq(cap_id))
-        .first::<models::UpgradeCap>(conn)
-        .await
-        .map_err(error::ErrorInternalServerError)?;
-
-    let latest_version = upgrade_cap_versions_dsl::upgrade_cap_versions
-        .filter(upgrade_cap_versions_dsl::object_id.eq(cap_id))
-        .order(upgrade_cap_versions_dsl::version.desc())
-        .first::<models::UpgradeCapVersion>(conn)
-        .await
-        .optional()
-        .map_err(error::ErrorInternalServerError)?;
-
-    let (package_id, version_str) = match latest_version {
-        Some(v) => (v.package_id, v.version.to_string()),
-        None => ("Unknown".to_string(), "0".to_string()),
-    };
-
-    let latest_transfer = upgrade_cap_transfers_dsl::upgrade_cap_transfers
-        .filter(upgrade_cap_transfers_dsl::object_id.eq(cap_id))
-        .order(upgrade_cap_transfers_dsl::seq_checkpoint.desc())
-        .first::<models::UpgradeCapTransfer>(conn)
-        .await
-        .optional()
-        .map_err(error::ErrorInternalServerError)?;
-
-    let owner_address = match latest_transfer {
-        Some(t) => t.new_owner_address,
-        None => "Unknown".to_string(),
-    };
-
-    let first_transfer = upgrade_cap_transfers_dsl::upgrade_cap_transfers
-        .filter(upgrade_cap_transfers_dsl::object_id.eq(cap_id))
-        .order(upgrade_cap_transfers_dsl::seq_checkpoint.asc())
-        .first::<models::UpgradeCapTransfer>(conn)
-        .await
-        .optional()
-        .map_err(error::ErrorInternalServerError)?;
-
-    let created_by = match &first_transfer {
-        Some(t) => t.new_owner_address.clone(),
-        None => "Unknown".to_string(),
-    };
-
-    let created_by_url = match &first_transfer {
-        Some(t) => sui_address_url(&t.new_owner_address),
-        None => "Unknown".to_string(),
-    };
-
-    let policy_str = cap.policy.to_string();
-    let now = chrono::Utc::now();
-    let time_ago = format_time_ago(&cap.created_at, &now);
-
-    Ok(Cap {
-        id: cap.object_id.clone(),
-        id_url: sui_object_url(&cap.object_id),
-        short_id: short_sui_object_id(&cap.object_id),
-        package: short_sui_object_id(&package_id),
-        package_full: package_id.clone(),
-        package_url: phantom_package_url(&package_id),
-        version: version_str,
-        policy: policy_str,
-        owner: short_sui_object_id(&owner_address),
-        owner_full: owner_address.clone(),
-        owner_url: sui_address_url(&owner_address),
-        created_by: short_sui_object_id(&created_by),
-        created_by_full: created_by.clone(),
-        created_by_url,
-        tx_digest_url: sui_tx_url(&cap.created_tx_digest),
-        time_ago,
-    })
-}
-
-async fn fetch_cap_versions_history(
-    conn: &mut AsyncPgConnection,
-    cap_id: &str,
-) -> QueryResult<Vec<models::UpgradeCapVersion>> {
-    upgrade_cap_versions_dsl::upgrade_cap_versions
-        .filter(upgrade_cap_versions_dsl::object_id.eq(cap_id))
-        .order(upgrade_cap_versions_dsl::seq_checkpoint.desc())
-        .load::<models::UpgradeCapVersion>(conn)
-        .await
-}
-
-async fn fetch_cap_transfers_history(
-    conn: &mut AsyncPgConnection,
-    cap_id: &str,
-) -> QueryResult<Vec<models::UpgradeCapTransfer>> {
-    upgrade_cap_transfers_dsl::upgrade_cap_transfers
-        .filter(upgrade_cap_transfers_dsl::object_id.eq(cap_id))
-        .order(upgrade_cap_transfers_dsl::seq_checkpoint.desc())
-        .load::<models::UpgradeCapTransfer>(conn)
-        .await
-}
-
-async fn fetch_upgrade_caps_count(conn: &mut AsyncPgConnection) -> QueryResult<i64> {
-    upgrade_caps_dsl::upgrade_caps
-        .count()
-        .get_result(conn)
-        .await
-}
-
-async fn fetch_packages_count(conn: &mut AsyncPgConnection) -> QueryResult<i64> {
-    upgrade_cap_versions_dsl::upgrade_cap_versions
-        .count()
-        .get_result(conn)
-        .await
-}
-
-async fn fetch_transfers_count(conn: &mut AsyncPgConnection) -> QueryResult<i64> {
-    upgrade_cap_transfers_dsl::upgrade_cap_transfers
-        .count()
-        .get_result(conn)
-        .await
-}
-
-fn short_sui_object_id(id: &str) -> String {
-    if id.len() > 14 {
-        format!("{}...{}", &id[..8], &id[id.len() - 6..])
-    } else {
-        id.to_string()
-    }
-}
-
-fn sui_tx_url(tx_digest: &str) -> String {
-    format!("{}{}", SUI_TX_EXPLORER_URL, tx_digest)
-}
-
-fn sui_checkpoint_url(checkpoint: &i64) -> String {
-    format!("{}{}", SUI_CHECKPOINT_EXPLORER_URL, checkpoint)
-}
-
-fn sui_package_url(package_id: &str) -> String {
-    format!("{}{}", SUI_PACKAGE_EXPLORER_URL, package_id)
-}
-
-fn sui_address_url(address: &str) -> String {
-    format!("{}{}", SUI_ADDRESS_EXPLORER_URL, address)
-}
-
-fn sui_object_url(object_id: &str) -> String {
-    format!("{}{}", SUI_OBJECT_EXPLORER_URL, object_id)
-}
-
-fn phantom_cap_url(cap_id: &str) -> String {
-    format!("/cap/{}", cap_id)
-}
-
-fn phantom_package_url(package_id: &str) -> String {
-    format!("/package/{}", package_id)
-}
-
-fn format_time_ago(timestamp: &DateTime<Utc>, current: &DateTime<Utc>) -> String {
-    let diff = current.signed_duration_since(timestamp);
-    let time_ago = if diff.num_days() > 0 {
-        format!("{}d ago", diff.num_days())
-    } else if diff.num_hours() > 0 {
-        format!("{}h ago", diff.num_hours())
-    } else {
-        format!("{}m ago", diff.num_minutes())
-    };
-    time_ago
 }
 
 #[derive(Template)]

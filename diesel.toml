@@ -1,5 +1,6 @@
 [print_schema]
 file = "crates/indexer/src/schema.rs"
+file = "crates/backend/src/schema.rs"
 
 [migrations_directory]
-dir = "crates/indexer/migrations"
+dir = "crates/migrator/migrations"

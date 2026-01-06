@@ -11,7 +11,6 @@ use handlers::{
 
 use anyhow::Result;
 use clap::Parser;
-use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 use sui_indexer_alt_framework::{
     cluster::{Args, IndexerCluster},
     ingestion::{
@@ -21,8 +20,6 @@ use sui_indexer_alt_framework::{
 };
 use tokio;
 use url::Url;
-
-const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -52,7 +49,6 @@ async fn main() -> Result<()> {
     let mut cluster = IndexerCluster::builder()
         .with_args(args)
         .with_database_url(database_url)
-        .with_migrations(&MIGRATIONS)
         .with_client_args(client_args)
         .build()
         .await
