@@ -3,8 +3,75 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{% block title %}Phantom Cap{% endblock %}</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>{% block title %}Phantom Cap - Sui Blockchain Upgrade Cap Explorer{% endblock %}</title>
+    <meta name="title" content="{% block meta_title %}Phantom Cap - Sui Blockchain Upgrade Cap Explorer{% endblock %}">
+    <meta name="description" content="{% block meta_description %}Explore and track Sui blockchain upgrade capabilities. Monitor package upgrades, version history, and transfer events in real-time with Phantom Cap.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}Sui blockchain, upgrade cap, package upgrades, blockchain explorer, Sui network, smart contracts, version tracking, Sui packages{% endblock %}">
+    <meta name="author" content="Phantom Cap">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{% block og_url %}https://phantomcap.xyz/{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}Phantom Cap - Sui Blockchain Upgrade Cap Explorer{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Explore and track Sui blockchain upgrade capabilities. Monitor package upgrades, version history, and transfer events in real-time.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}https://phantomcap.xyz/static/assets/art.png{% endblock %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Phantom Cap">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{% block twitter_url %}https://phantomcap.xyz/{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}Phantom Cap - Sui Blockchain Upgrade Cap Explorer{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Explore and track Sui blockchain upgrade capabilities. Monitor package upgrades, version history, and transfer events.{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}https://phantomcap.xyz/static/assets/art.png{% endblock %}">
+    <meta name="twitter:creator" content="@phantomcap">
+    
+    <!-- AI-SEO: Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Phantom Cap",
+      "description": "Sui blockchain UpgradeCap and Packages explorer and monitoring tool",
+      "url": "https://phantomcap.xyz",
+      "applicationCategory": "BlockchainExplorer",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "Phantom Cap",
+        "url": "https://phantomcap.xyz"
+      },
+      "featureList": [
+        "UpgradeCap Tracking",
+        "UpgradeCap Version History Monitoring",
+        "Transfer Event Tracking",
+        "Real-time Blockchain Data",
+        "Package Upgrade Analytics",
+        "Package Compatibility Analytics"
+      ]
+    }
+    </script>
+    
+    <!-- Additional Meta Tags -->
+    <meta name="theme-color" content="#0f172a">
+    <meta name="color-scheme" content="dark light">
+    <meta name="format-detection" content="telephone=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/static/assets/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/apple-touch-icon.png">
+    
     <!-- Tailwind CSS -->
     <link href="/static/styles/output.css" rel="stylesheet">
     <!-- Htmx -->
@@ -16,7 +83,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-
     <style>
         body { font-family: 'Outfit', sans-serif; }
         h1, h2, h3, h4, h5, h6 { font-family: 'Space Grotesk', sans-serif; }
