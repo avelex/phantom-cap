@@ -67,7 +67,7 @@
                     @click="tab = 'upgrades'"
                     :class="tab === 'upgrades' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'"
                     class="px-6 py-2 rounded-md font-medium text-sm transition-all"
-                    hx-get="/cap/{{ id }}/versions"
+                    hx-get="/object/{{ id }}/versions"
                     hx-trigger="load, click"
                     hx-target="#table-body">
                     Upgrades
@@ -76,7 +76,7 @@
                     @click="tab = 'transfers'"
                     :class="tab === 'transfers' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'"
                     class="px-6 py-2 rounded-md font-medium text-sm transition-all"
-                    hx-get="/cap/{{ id }}/transfers"
+                    hx-get="/object/{{ id }}/transfers"
                     hx-target="#table-body">
                     Transfers
                 </button>

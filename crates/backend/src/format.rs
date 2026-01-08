@@ -35,7 +35,7 @@ pub fn sui_object_url(object_id: &str) -> String {
 }
 
 pub fn phantom_cap_url(cap_id: &str) -> String {
-    format!("/cap/{}", cap_id)
+    format!("/object/{}", cap_id)
 }
 
 pub fn phantom_package_url(package_id: &str) -> String {

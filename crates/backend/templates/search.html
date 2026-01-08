@@ -2,7 +2,7 @@
 {%- match self -%}
     {%- when Self::Cap(id) -%}
         <p>UpgradeCap</p>
-        <a href="/cap/{{ id }}">{{ id }}</a>
+        <a href="/object/{{ id }}">{{ id }}</a>
     {%- when Self::Package(id) -%}
         <p>Package</p>
         <a href="/package/{{ id }}">{{ id }}</a>

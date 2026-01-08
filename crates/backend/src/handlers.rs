@@ -68,7 +68,7 @@ pub async fn search_cap(
     Ok(Html::new("Not Found"))
 }
 
-#[get("/cap/{id}")]
+#[get("/object/{id}")]
 pub async fn show_cap_info(
     pool: web::Data<DbPool>,
     id: web::Path<String>,
@@ -81,7 +81,7 @@ pub async fn show_cap_info(
     ))
 }
 
-#[get("/cap/{id}/transfers")]
+#[get("/object/{id}/transfers")]
 pub async fn show_cap_transfers(
     pool: web::Data<DbPool>,
     id: web::Path<String>,
@@ -123,7 +123,7 @@ pub async fn show_cap_transfers(
     ))
 }
 
-#[get("/cap/{id}/versions")]
+#[get("/object/{id}/versions")]
 pub async fn show_cap_versions(
     pool: web::Data<DbPool>,
     id: web::Path<String>,
