@@ -3,13 +3,11 @@
   <img src="./crates/backend/static/assets/logo.png" width="200" alt="">
   <br />
   <h2 align="center">PhantomCap</h2>
-  <p align="center"><strong>Explore  <img src="https://docs.sui.io/img/sui-logo.svg" height="16" alt="Sui">  UpgradeCaps and Packages</strong></p>
+  <p align="center"><strong>Explore Sui UpgradeCaps and Packages</strong></p>
   <p align="center">Monitor package upgrades, version history, and transfer events in real-time</p>
 </p>
 
 ## Usage
-
-<img src="https://r2.phantomcap.xyz/static/assets/phacap-usage.gif" width="600" alt="PhantomCap Usage">
 
 1. Go to [SuiVision](https://suivision.xyz/)
 2. Find some project's package
