@@ -3,15 +3,18 @@
   <img src="./crates/backend/static/assets/logo.png" width="200" alt="">
   <br />
   <h2 align="center">PhantomCap</h2>
-  <p align="center"><strong>Explore Sui blockchain UpgradeCaps and Packages</strong></p>
+  <p align="center"><strong>Explore  <img src="https://docs.sui.io/img/sui-logo.svg" height="16" alt="Sui">  UpgradeCaps and Packages</strong></p>
   <p align="center">Monitor package upgrades, version history, and transfer events in real-time</p>
 </p>
 
 ## Usage
 
+<img src="https://r2.phantomcap.xyz/static/assets/phacap-usage.gif" width="600" alt="PhantomCap Usage">
+
 1. Go to [SuiVision](https://suivision.xyz/)
-2. Find some project
-3. Insert `.phacap` between `suivision` and `.xyz` and analyze package capabilities comfortably
+2. Find some project's package
+3. Insert `.phacap` between `suivision` and `.xyz`
+4. Analyze package capabilities comfortably
 
 ## Motivation
 Finding packages UpgradeCap and real owner directly on SuiScan or SuiVision sucks! You need to spend a lot of time scrolling through transactions to find it. Also their "immutable" badges try to inspire confidence, but it's not true in most cases.
