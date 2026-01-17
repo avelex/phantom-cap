@@ -22,3 +22,26 @@ PhantomCap was born out of frustration, and it's here to fix all of transparency
 ## Goal
 
 PhantomCap is a fully open-source, public good that is available for anyone and is developed by a community. Other blockchain explorers can use it/self-host it instead of developing the same thing again.
+
+## TODO
+
+- [ ] Add UpgradeCap policy handler
+  - [ ] Handle `only_additive_upgrades`
+  - [ ] Handle `only_dep_upgrades`
+  - [ ] Handle `make_immutable`
+  - [ ] Handle transfer to `immutable`
+- [ ] Add SuiVision external link to UpgradeCap/Package pages
+- [ ] Add summary badges to UpgradeCap page
+  - [ ] `Best`, `High Risk`, `Medium Risk`, `Low Risk` - by risk level
+  - [ ] `Immutable` ,`Upgradable`, `AdditiveOnly`, `DepsOnly` - by policy type
+  - [ ] `Single Owner`, `MultiSig` - by owner type
+
+## Risk Levels
+
+| Owner \ Policy | Upgradable | AdditiveOnly | DepsOnly | Immutable |
+| :--- | :---: | :---: | :---: | :---: |
+| 👤 Single | 🔴 High | 🟠 Medium | 🟡 Low | - |
+| 👥 MultiSig | 🟠 Medium | 🟠 Medium | 🟡 Low | - |
+| 🔒 No Owner | - | - | - | 🟢 Best |
+
+> **Legend:** 🔴 High Risk • 🟠 Medium Risk • 🟡 Low Risk • 🟢 Best

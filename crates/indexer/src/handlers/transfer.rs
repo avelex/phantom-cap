@@ -125,6 +125,8 @@ impl Handler for UpgradeCapHandler {
     }
 
     async fn commit<'a>(&self, batch: &Self::Batch, conn: &mut Connection<'a>) -> Result<usize> {
+        // TODO: check if new owner is "immutable",
+        // update upgrade cap policy as immutable.
         let inserted = diesel::insert_into(upgrade_cap_transfers)
             .values(batch)
             .on_conflict((object_id, tx_digest))
